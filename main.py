@@ -1,4 +1,4 @@
-import o
+import os
 import sys
 import re
 from dotenv import load_dotenv
