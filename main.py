@@ -44,7 +44,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     ai_response = ""
 
-    # Tenta gerar a resposta com a IA da Groq
+    # Tenta gerar a resposta persuasiva com a IA da Groq
     try:
         if groq_client:
             system_instruction = (
@@ -52,7 +52,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "descontos e as melhores ofertas do mercado para os utilizadores. "
                 "O teu objetivo é analisar o que o cliente procura, dar conselhos úteis sobre os melhores "
                 "produtos e incentivá-los a verificar as ofertas. Sê dinâmico, usa emojis adequados "
-                "e mantém um tom entusiasmado e prestativo."
+                "e mantém um tom entusiasmado e prestativo. Escreve respostas curtas e cativantes."
             )
 
             completion = groq_client.chat.completions.create(
@@ -68,16 +68,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Aviso: Erro na API da Groq: {e}")
 
-    # Se a IA falhar ou estiver sem chave, usa uma resposta comercial padrão
+    # Se a IA por acaso falhar ou a chave não estiver ativa, usa uma resposta comercial de apoio
     if not ai_response:
-        ai_response = f"Encontrei excelentes opções e ofertas imperdíveis para '{user_text}' com os melhores preços!"
+        ai_response = f"Encontrei ótimas opções e promoções imperdíveis para '{user_text}' com os melhores preços do mercado!"
 
     # Criação do link de busca oficial com o seu ID de afiliado
     query_encoded = urllib.parse.quote(user_text)
     affiliate_link = f"https://lista.mercadolivre.com.br/{query_encoded}#D[A:{query_encoded},ontrend:true]&matt_tool={AFFILIATE_TAG}"
-
-    # Adiciona o link em texto para validação visual neste teste
-    mensagem_final = f"{ai_response}\n\n🔗 *Link gerado:* `{affiliate_link}`"
 
     # Botão interativo do Telegram com o link rastreado
     keyboard = [
@@ -85,11 +82,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    # Envia a mensagem com o botão
+    # Envia a resposta gerada pela IA juntamente com o botão de afiliado
     await update.message.reply_text(
-        mensagem_final, 
-        reply_markup=reply_markup,
-        parse_mode="Markdown"
+        ai_response, 
+        reply_markup=reply_markup
     )
 
 def main():
@@ -102,7 +98,7 @@ def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 
-    logger.info("Bot de teste de pesquisa iniciado com sucesso...")
+    logger.info("Bot de afiliados com IA ativada iniciado com sucesso...")
     application.run_polling()
 
 if __name__ == "__main__":
