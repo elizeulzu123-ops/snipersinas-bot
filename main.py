@@ -32,7 +32,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Inicializa o cliente da Groq
-groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
+groq_client = Groq(api_key=GROQ_API_KEY) if Groq(api_key=GROQ_API_KEY) else None
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -51,8 +51,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     welcome_message = (
         f"OLÁ, {user_name.upper()}! 🔥 SEJA MUITO BEM-VINDO AO SEU ASSISTENTE DE COMPRAS!\n\n"
-        "EU SOU ESPECIALISTA EM ENCONTRAR AS MELHORES OFERTAS, DESCONTOS E PRODUTOS NO **MERCADO LIVRE**!\n\n"
-        "👉 *FALE COMIGO SOBRE QUALQUER PRODUTO (EX: QUAL O MELHOR CELULAR, FERRAMENTAS EM PROMOÇÃO) OU ESCOLHA UMA CATEGORIA ABAIXO:*"
+        "EU SOU O SEU ESPECIALISTA EM PRODUTOS DO **MERCADO LIVRE**. "
+        "O MEU OBJETIVO É CONVERSAR COM VOCÊ, ENTENDER EXATAMENTE O QUE VOCÊ PRECISA E ACHAR O MELHOR PREÇO!\n\n"
+        "👉 *ME CONTE: O QUE VOCÊ ESTÁ PROCURANDO OU QUER QUE EU TE AJUDE A ESCOLHER ALGO?*"
     )
 
     keyboard = [
@@ -90,13 +91,14 @@ async def processar_busca(update_obj, context, chat_id, user, user_text):
 
     try:
         if groq_client:
-            # Instrução especializada focada em conversas sobre produtos do Mercado Livre
+            # Instrução focada em diálogo interativo e descoberta de intenção
             system_instruction = (
-                "Tu és o assistente de inteligência artificial oficial de vendas do **MERCADO LIVRE**. "
-                "O teu foco absoluto é conversar sobre produtos disponíveis no Mercado Livre, dar dicas de compras, "
-                "comparar itens, destacar vantagens de marcas e ajudar o cliente a escolher o melhor produto. "
+                "Tu és o assistente de vendas e especialista em produtos do **MERCADO LIVRE**. "
+                "O teu papel é interagir ativamente com o cliente, fazer perguntas para identificar exatamente o que ele quer (como marca, faixa de preço, uso pretendido) "
+                "e dar recomendações excelentes. "
                 "REGRA OBRIGATÓRIA 1: Escreve INTEIRAMENTE EM LETRAS MAIÚSCULAS (CAPSLOCK) para dar máximo destaque. "
-                "REGRA OBRIGATÓRIA 2: Sê dinâmico, usa emojis comerciais, fala com entusiasmo sobre os produtos e incentiva sempre o cliente a aproveitar os descontos e o frete rápido do Mercado Livre."
+                "REGRA OBRIGATÓRIA 2: Se o cliente disser apenas um cumprimento (como 'olá', 'oi') ou for muito vago, NÃO inventes um produto. Em vez disso, conversa com ele, acolhe-o e pergunta qual tipo de produto ou categoria ele tem interesse em ver hoje. "
+                "REGRA OBRIGATÓRIA 3: Sê dinâmico, usa emojis comerciais, conversa como um vendedor experiente e prestativo."
             )
 
             completion = groq_client.chat.completions.create(
@@ -112,12 +114,19 @@ async def processar_busca(update_obj, context, chat_id, user, user_text):
     except Exception as e:
         logger.error(f"Aviso: Erro na API da Groq: {e}")
 
-    if not ai_response:
-        ai_response = f"ENCONTREI ÓTIMAS OPÇÕES E PROMOÇÕES IMPERDÍVEIS PARA '{user_text.upper()}' NO MERCADO LIVRE!"
+    # Tratamento inteligente para definir o link com base no que o cliente disse
+    texto_limpo = user_text.strip().lower()
+    saudacoes = ["ola", "olá", "oi", "bom dia", "boa tarde", "boa noite", "tudo bem", "eae"]
 
-    # Gera o link dinâmico de pesquisa com o código de afiliado
-    query_encoded = urllib.parse.quote(user_text)
-    affiliate_link = f"https://lista.mercadolivre.com.br/{query_encoded}#D[A:{query_encoded},ontrend:true]&matt_tool={AFFILIATE_TAG}"
+    if not ai_response:
+        ai_response = f"QUE EXCELENTE ESCOLHA! VOU TE AJUDAR A ENCONTRAR AS MELHORES OPÇÕES PARA '{user_text.upper()}' NO MERCADO LIVRE COM PREÇO BAIXO!"
+
+    # Se for saudação ou frase muito vaga de bate-papo, manda para as ofertas gerais; se for produto claro, faz a busca
+    if texto_limpo in saudacoes or len(texto_limpo) < 3:
+        affiliate_link = f"https://www.mercadolivre.com.br/ofertas?matt_tool={AFFILIATE_TAG}"
+    else:
+        query_encoded = urllib.parse.quote(user_text)
+        affiliate_link = f"https://lista.mercadolivre.com.br/{query_encoded}#D[A:{query_encoded},ontrend:true]&matt_tool={AFFILIATE_TAG}"
 
     support_link = f"https://t.me/{SEU_USER_TELEGRAM}"
 
@@ -161,8 +170,9 @@ def main():
     application.add_handler(CallbackQueryHandler(handle_button))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 
-    logger.info("Bot especialista em produtos do Mercado Livre ativado...")
+    logger.info("Bot altamente interativo e focado em identificar o cliente ativado...")
     application.run_polling()
 
 if __name__ == "__main__":
     main()
+    
