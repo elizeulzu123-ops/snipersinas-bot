@@ -18,7 +18,7 @@ AFFILIATE_TAG = "Fe20250121204050"
 # O seu ID pessoal de Administrador no Telegram para receber os avisos
 MEU_ADMIN_ID = "7780082282" 
 
-# Substitua pelo seu nome de utilizador (username) do Telegram no suporte (ex: "seu_usuario")
+# Substitua pelo seu nome de utilizador (username) do Telegram no suporte
 SEU_USER_TELEGRAM = "SeuUsuarioTelegram"
 
 # Conjunto para guardar os IDs únicos dos utilizadores
@@ -45,45 +45,46 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         if MEU_ADMIN_ID:
             try:
-                aviso_admin = f"🚨 *Novo cliente no bot!*\n\n👤 Nome: {user_name}\n🆔 ID: `{user_id}`\n👥 Total de clientes: {len(utilizadores_unicos)}"
+                aviso_admin = f"🚨 *NOVO CLIENTE NO BOT!*\n\n👤 Nome: {user_name}\n🆔 ID: `{user_id}`\n👥 Total de clientes: {len(utilizadores_unicos)}"
                 await context.bot.send_message(chat_id=int(MEU_ADMIN_ID), text=aviso_admin, parse_mode="Markdown")
             except Exception as e:
                 logger.error(f"Erro ao enviar aviso para o admin: {e}")
 
     welcome_message = (
-        f"Olá, {user_name}! 🔥 Seja muito bem-vindo!\n\n"
-        "Eu sou o seu assistente de compras inteligente. O meu objetivo é ajudar-lo a encontrar "
-        "as melhores promoções, descontos e os preços mais baixos do mercado!\n\n"
-        "Pode escolher uma das categorias rápidas abaixo ou simplesmente **digitar o que procura** (Ex: furadeira, smart TV, celular)..."
+        f"OLÁ, {user_name.upper()}! 🔥 SEJA MUITO BEM-VINDO!\n\n"
+        "EU SOU O SEU ASSISTENTE DE COMPRAS INTELIGENTE. O MEU OBJETIVO É AJUDAR-LO A ENCONTRAR "
+        "AS MELHORES PROMOÇÕES, DESCONTOS E OS PREÇOS MAIS BAIXOS DO MERCADO!\n\n"
+        "👉 *ESCOLHA UMA CATEGORIA ABAIXO OU DIGITE O QUE PROCURA (EX: CELULAR, FERRAMENTAS, SMART TV):*"
     )
 
-    # Botões interativos de categorias rápidas no início
+    # Botões interativos em letras maiúsculas
     keyboard = [
         [
-            InlineKeyboardButton("📱 Celulares & Acessórios", callback_data="celular"),
-            InlineKeyboardButton("🛠️ Ferramentas", callback_data="ferramentas")
+            InlineKeyboardButton("📱 CELULARES & ACESSÓRIOS", callback_data="celular"),
+            InlineKeyboardButton("🛠️ FERRAMENTAS", callback_data="ferramentas")
         ],
         [
-            InlineKeyboardButton("🏠 Casa e Cozinha", callback_data="utilidades para casa"),
-            InlineKeyboardButton("💻 Informática", callback_data="notebook e eletronicos")
+            InlineKeyboardButton("🏠 CASA E COZINHA", callback_data="utilidades para casa"),
+            InlineKeyboardButton("💻 INFORMÁTICA", callback_data="notebook e eletronicos")
         ],
         [
-            InlineKeyboardButton("🔥 Ver Ofertas do Dia", callback_data="ofertas imperdíveis no mercado livre")
+            InlineKeyboardButton("🔥 VER OFERTAS DO DIA", callback_data="ofertas imperdíveis no mercado livre")
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text(welcome_message, reply_markup=reply_markup)
+    await update.message.reply_text(welcome_message, reply_markup=reply_markup, parse_mode="Markdown")
 
 # Comando para ver as estatísticas
 async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     total_pessoas = len(utilizadores_unicos)
     await update.message.reply_text(
-        f"📊 *Estatísticas do Bot:*\n\n"
-        f"👥 Total de pessoas únicas que já acederam: **{total_pessoas}**"
+        f"📊 *ESTATÍSTICAS DO BOT:*\n\n"
+        f"👥 Total de pessoas únicas que já acederam: **{total_pessoas}**",
+        parse_mode="Markdown"
     )
 
-# Função central que processa o texto (com os DOIS BOTÕES NO RODAPÉ: Oferta + Suporte)
+# Função central que processa o texto com IA forçada a letras maiúsculas
 async def processar_busca(update_obj, context, chat_id, user, user_text):
     if user.id not in utilizadores_unicos:
         utilizadores_unicos.add(user.id)
@@ -95,12 +96,11 @@ async def processar_busca(update_obj, context, chat_id, user, user_text):
 
     try:
         if groq_client:
+            # Instrução rígida para a IA responder estritamente em MAIÚSCULAS e com destaque
             system_instruction = (
-                "Tu és um assistente de vendas altamente persuasivo, especialista em encontrar promoções, "
-                "descontos e as melhores ofertas do Mercado Livre para os utilizadores. "
-                "O teu objetivo é analisar o que o cliente procura, dar conselhos úteis e entusiasmados "
-                "sobre os produtos e incentivá-los a verificar as ofertas. Sê dinâmico, usa emojis adequados "
-                "e escreve respostas curtas, cativantes e amigáveis."
+                "Tu és um assistente de vendas altamente persuasivo e enérgico, especialista em promoções do Mercado Livre. "
+                "REGRA OBRIGATÓRIA: Tu DEVES escrever a tua resposta INTEIRAMENTE EM LETRAS MAIÚSCULAS (CAPSLOCK) "
+                "para dar máximo destaque. Sê dinâmico, usa emojis chamativos e escreve textos curtos, persuasivos e diretos."
             )
 
             completion = groq_client.chat.completions.create(
@@ -117,19 +117,18 @@ async def processar_busca(update_obj, context, chat_id, user, user_text):
         logger.error(f"Aviso: Erro na API da Groq: {e}")
 
     if not ai_response:
-        ai_response = f"Encontrei ótimas opções e promoções imperdíveis para '{user_text}' com os melhores preços do mercado!"
+        ai_response = f"ENCONTREI ÓTIMAS OPÇÕES E PROMOÇÕES IMPERDÍVEIS PARA '{user_text.upper()}' COM OS MELHORES PREÇOS DO MERCADO!"
 
     # Gera o link dinâmico com o código de afiliado
     query_encoded = urllib.parse.quote(user_text)
     affiliate_link = f"https://lista.mercadolivre.com.br/{query_encoded}#D[A:{query_encoded},ontrend:true]&matt_tool={AFFILIATE_TAG}"
 
-    # Link para o botão de suporte (abre o seu chat privado no Telegram)
     support_link = f"https://t.me/{SEU_USER_TELEGRAM}"
 
-    # DOIS BOTÕES NO RODAPÉ: [Ver Oferta] e [Falar com Suporte] lado a lado ou empilhados
+    # Botões do rodapé em letras maiúsculas
     keyboard = [
-        [InlineKeyboardButton("🛒 Ver Oferta no Mercado Livre", url=affiliate_link)],
-        [InlineKeyboardButton("💬 Falar com o Suporte", url=support_link)]
+        [InlineKeyboardButton("🛒 VER OFERTA NO MERCADO LIVRE", url=affiliate_link)],
+        [InlineKeyboardButton("💬 FALAR COM O SUPORTE", url=support_link)]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -149,7 +148,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Handler para quando o utilizador clica num botão de categoria
 async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer() # Fecha o loading do botão no Telegram
+    await query.answer() 
     
     user_text = query.data  
     chat_id = query.message.chat_id
@@ -169,7 +168,7 @@ def main():
     application.add_handler(CallbackQueryHandler(handle_button))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 
-    logger.info("Bot com rodapé de Oferta e Suporte ativo...")
+    logger.info("Bot com letras maiúsculas e destaque ativo...")
     application.run_polling()
 
 if __name__ == "__main__":
