@@ -18,6 +18,9 @@ AFFILIATE_TAG = "Fe20250121204050"
 # O seu ID pessoal de Administrador no Telegram para receber os avisos
 MEU_ADMIN_ID = "7780082282" 
 
+# Substitua pelo seu nome de utilizador (username) do Telegram no suporte (ex: "seu_usuario")
+SEU_USER_TELEGRAM = "SeuUsuarioTelegram"
+
 # Conjunto para guardar os IDs únicos dos utilizadores
 utilizadores_unicos = set()
 
@@ -51,10 +54,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Olá, {user_name}! 🔥 Seja muito bem-vindo!\n\n"
         "Eu sou o seu assistente de compras inteligente. O meu objetivo é ajudar-lo a encontrar "
         "as melhores promoções, descontos e os preços mais baixos do mercado!\n\n"
-        "Pode escolher uma das categorias rápidas abaixo ou simplesmente **digitar o que procura** (Ex: furadeira, smart TV, tênis)..."
+        "Pode escolher uma das categorias rápidas abaixo ou simplesmente **digitar o que procura** (Ex: furadeira, smart TV, celular)..."
     )
 
-    # Botões interativos de categorias rápidas
+    # Botões interativos de categorias rápidas no início
     keyboard = [
         [
             InlineKeyboardButton("📱 Celulares & Acessórios", callback_data="celular"),
@@ -80,7 +83,7 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"👥 Total de pessoas únicas que já acederam: **{total_pessoas}**"
     )
 
-# Função central que processa o texto (seja por mensagem digitada ou clique em botões)
+# Função central que processa o texto (com os DOIS BOTÕES NO RODAPÉ: Oferta + Suporte)
 async def processar_busca(update_obj, context, chat_id, user, user_text):
     if user.id not in utilizadores_unicos:
         utilizadores_unicos.add(user.id)
@@ -120,8 +123,13 @@ async def processar_busca(update_obj, context, chat_id, user, user_text):
     query_encoded = urllib.parse.quote(user_text)
     affiliate_link = f"https://lista.mercadolivre.com.br/{query_encoded}#D[A:{query_encoded},ontrend:true]&matt_tool={AFFILIATE_TAG}"
 
+    # Link para o botão de suporte (abre o seu chat privado no Telegram)
+    support_link = f"https://t.me/{SEU_USER_TELEGRAM}"
+
+    # DOIS BOTÕES NO RODAPÉ: [Ver Oferta] e [Falar com Suporte] lado a lado ou empilhados
     keyboard = [
-        [InlineKeyboardButton("🛒 Ver Oferta no Mercado Livre", url=affiliate_link)]
+        [InlineKeyboardButton("🛒 Ver Oferta no Mercado Livre", url=affiliate_link)],
+        [InlineKeyboardButton("💬 Falar com o Suporte", url=support_link)]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -143,7 +151,7 @@ async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer() # Fecha o loading do botão no Telegram
     
-    user_text = query.data  # O valor guardado no callback_data vira a busca
+    user_text = query.data  
     chat_id = query.message.chat_id
     user = query.from_user
 
@@ -161,7 +169,7 @@ def main():
     application.add_handler(CallbackQueryHandler(handle_button))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 
-    logger.info("Bot com botões de categorias e IA ativo...")
+    logger.info("Bot com rodapé de Oferta e Suporte ativo...")
     application.run_polling()
 
 if __name__ == "__main__":
