@@ -2,14 +2,7 @@ import os
 import logging
 import urllib.parse
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import (
-    ApplicationBuilder,
-    ContextTypes,
-    MessageHandler,
-    CallbackQueryHandler,
-    CommandHandler,
-    filters,
-)
+from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CallbackQueryHandler, CommandHandler, filters
 from groq import Groq
 from dotenv import load_dotenv
 
@@ -18,83 +11,117 @@ load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+# O seu ID de afiliado oficial do Mercado Livre
 AFFILIATE_TAG = "Fe20250121204050"
+
+# O seu ID pessoal de Administrador no Telegram para receber os avisos
+MEU_ADMIN_ID = "7780082282" 
+
+# Substitua pelo seu nome de utilizador (username) do Telegram no suporte
 SEU_USER_TELEGRAM = "SeuUsuarioTelegram"
 
-# Configuração de logs
+# Conjunto para guardar os IDs únicos dos utilizadores
+utilizadores_unicos = set()
+
+# Configuração básica de logs
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Inicializa cliente Groq
+# Inicializa o cliente da Groq
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
-
-# Dicionário para guardar o histórico de cada cliente (Chave: user_id, Valor: lista de mensagens)
-historicos = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_id = user.id
-    
-    # Limpa o histórico ao reiniciar com /start
-    if user_id in historicos:
-        del historicos[user_id]
+    user_name = user.first_name
 
-    welcome_text = (
-        f"OLÁ, {user.first_name.upper()}! 🔥 SEJA MUITO BEM-VINDO AO MARLIN DAS OFERTAS!\n\n"
-        "EU SOU O SEU ASSISTENTE VIRTUAL NO **MERCADO LIVRE**. "
-        "ESTOU AQUI PARA CONVERSAR COM VOCÊ, TIRAR DÚVIDAS E AJUDAR A ENCONTRAR EXATAMENTE O PRODUTO QUE VOCÊ PRECISA!\n\n"
-        "👉 *ME CONTE: O QUE VOCÊ ESTÁ A PROCURAR HOJE?*"
+    if user_id not in utilizadores_unicos:
+        utilizadores_unicos.add(user_id)
+        
+        if MEU_ADMIN_ID:
+            try:
+                aviso_admin = f"🚨 *NOVO CLIENTE NO BOT!*\n\n👤 Nome: {user_name}\n🆔 ID: `{user_id}`\n👥 Total de clientes: {len(utilizadores_unicos)}"
+                await context.bot.send_message(chat_id=int(MEU_ADMIN_ID), text=aviso_admin, parse_mode="Markdown")
+            except Exception as e:
+                logger.error(f"Erro ao enviar aviso para o admin: {e}")
+
+    welcome_message = (
+        f"OLÁ, {user_name.upper()}! 🔥 SEJA MUITO BEM-VINDO AO SEU ASSISTENTE DE COMPRAS!\n\n"
+        "EU SOU ESPECIALISTA EM ENCONTRAR AS MELHORES OFERTAS, DESCONTOS E PRODUTOS NO **MERCADO LIVRE**!\n\n"
+        "👉 *FALE COMIGO SOBRE QUALQUER PRODUTO (EX: QUAL O MELHOR CELULAR, FERRAMENTAS EM PROMOÇÃO) OU ESCOLHA UMA CATEGORIA ABAIXO:*"
     )
-    
-    keyboard = [[InlineKeyboardButton("🔥 VER OFERTAS DO DIA", callback_data="ofertas imperdíveis mercado livre")]]
+
+    keyboard = [
+        [
+            InlineKeyboardButton("📱 CELULARES & ACESSÓRIOS", callback_data="celular"),
+            InlineKeyboardButton("🛠️ FERRAMENTAS", callback_data="ferramentas")
+        ],
+        [
+            InlineKeyboardButton("🏠 CASA E COZINHA", callback_data="utilidades para casa"),
+            InlineKeyboardButton("💻 INFORMÁTICA", callback_data="notebook e eletronicos")
+        ],
+        [
+            InlineKeyboardButton("🔥 VER OFERTAS DO DIA", callback_data="ofertas imperdíveis no mercado livre")
+        ]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode="Markdown")
+    await update.message.reply_text(welcome_message, reply_markup=reply_markup, parse_mode="Markdown")
 
-async def processar_mensagem(update, context, chat_id, user, user_text):
-    user_id = user.id
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    total_pessoas = len(utilizadores_unicos)
+    await update.message.reply_text(
+        f"📊 *ESTATÍSTICAS DO BOT:*\n\n"
+        f"👥 Total de pessoas únicas que já acederam: **{total_pessoas}**",
+        parse_mode="Markdown"
+    )
+
+async def processar_busca(update_obj, context, chat_id, user, user_text):
+    if user.id not in utilizadores_unicos:
+        utilizadores_unicos.add(user.id)
+
     await context.bot.send_chat_action(chat_id=chat_id, action="typing")
 
-    # Inicializa o histórico do utilizador se não existir
-    if user_id not in historicos:
-        system_prompt = (
-            "Tu és o assistente de vendas e especialista em produtos do **MERCADO LIVRE**. "
-            "O teu objetivo principal é conversar de forma natural e amigável com o cliente, fazendo perguntas inteligentes "
-            "para descobrir exatamente o que ele procura (como faixa de preço, marca, finalidade ou tamanho) antes de sugerir links. "
-            "REGRA OBRIGATÓRIA 1: Escreve INTEIRAMENTE EM LETRAS MAIÚSCULAS (CAPSLOCK). "
-            "REGRA OBRIGATÓRIA 2: Sê dinâmico, usa emojis e faz sempre uma pergunta no final para continuar o diálogo."
-        )
-        historicos[user_id] = [{"role": "system", "content": system_prompt}]
+    ai_response = ""
 
-    # Adiciona a mensagem do cliente ao histórico dele
-    historicos[user_id].append({"role": "user", "content": user_text})
-
-    resposta_ia = ""
     try:
         if groq_client:
-            # Pede à IA para gerar a resposta com base em toda a conversa anterior
+            # Instrução inteligente com tratamento de saudações e foco em produtos do Mercado Livre
+            system_instruction = (
+                "Tu és o assistente de inteligência artificial oficial de vendas do **MERCADO LIVRE**. "
+                "O teu foco absoluto é conversar sobre produtos disponíveis no Mercado Livre, dar dicas de compras, "
+                "comparar itens e ajudar o cliente a escolher o melhor produto. "
+                "REGRA OBRIGATÓRIA 1: Escreve INTEIRAMENTE EM LETRAS MAIÚSCULAS (CAPSLOCK) para dar máximo destaque. "
+                "REGRA OBRIGATÓRIA 2: Se o utilizador disser apenas 'olá', 'oi', 'bom dia' ou cumprimentos semelhantes, NÃO digas que encontraste o produto. Em vez disso, cumprimenta-o com muita energia, diz que estás pronto para ajudar a achar os melhores produtos no Mercado Livre e pergunta qual produto ou categoria ele quer procurar hoje! "
+                "REGRA OBRIGATÓRIA 3: Sê dinâmico, usa emojis comerciais e incentiva sempre o cliente."
+            )
+
             completion = groq_client.chat.completions.create(
                 model="llama-3.1-8b-instant",
-                messages=historicos[user_id],
+                messages=[
+                    {"role": "system", "content": system_instruction},
+                    {"role": "user", "content": user_text}
+                ],
                 temperature=0.7,
                 max_tokens=1024,
             )
-            resposta_ia = completion.choices[0].message.content
-            
-            # Guarda a resposta da IA no histórico para manter o contexto
-            historicos[user_id].append({"role": "assistant", "content": resposta_ia})
+            ai_response = completion.choices[0].message.content
     except Exception as e:
-        logger.error(f"Erro na API da Groq: {e}")
+        logger.error(f"Aviso: Erro na API da Groq: {e}")
 
-    if not resposta_ia:
-        resposta_ia = f"QUE EXCELENTE ESCOLHA! VOU TE AJUDAR A ENCONTRAR AS MELHORES OPÇÕES PARA '{user_text.upper()}' NO MERCADO LIVRE!"
-
-    # Cria o link de afiliado direcionando para a busca ou ofertas gerais
+    # Verifica se a mensagem foi uma saudação simples para direcionar o link corretamente
     texto_limpo = user_text.strip().lower()
-    if texto_limpo in ["ola", "olá", "oi", "bom dia", "boa tarde", "boa noite", "ofertas"]:
+    saudacoes = ["ola", "olá", "oi", "bom dia", "boa tarde", "boa noite", "tudo bem", "eae"]
+
+    if not ai_response:
+        ai_response = f"ENCONTREI ÓTIMAS OPÇÕES E PROMOÇÕES IMPERDÍVEIS PARA '{user_text.upper()}' NO MERCADO LIVRE!"
+
+    # Se for saudação, o link aponta para a página geral de ofertas; se for produto, faz a busca exata
+    if texto_limpo in saudacoes:
         affiliate_link = f"https://www.mercadolivre.com.br/ofertas?matt_tool={AFFILIATE_TAG}"
     else:
         query_encoded = urllib.parse.quote(user_text)
@@ -110,31 +137,40 @@ async def processar_mensagem(update, context, chat_id, user, user_text):
 
     await context.bot.send_message(
         chat_id=chat_id,
-        text=resposta_ia,
+        text=ai_response,
         reply_markup=reply_markup
     )
 
-async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await processar_mensagem(update, context, update.effective_chat.id, update.effective_user, update.message.text)
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_text = update.message.text
+    chat_id = update.effective_chat.id
+    user = update.effective_user
+    await processar_busca(update, context, chat_id, user, user_text)
 
-async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
-    await processar_mensagem(update, context, query.message.chat_id, query.from_user, query.data)
+    await query.answer() 
+    
+    user_text = query.data  
+    chat_id = query.message.chat_id
+    user = query.from_user
+
+    await processar_busca(update, context, chat_id, user, user_text)
 
 def main():
     if not TOKEN:
-        logger.error("Token do Telegram não configurado!")
+        logger.error("Erro: TOKEN do Telegram não definido.")
         return
 
-    app = ApplicationBuilder().token(TOKEN).build()
+    application = ApplicationBuilder().token(TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(handle_callback))
-    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_text))
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("stats", stats))
+    application.add_handler(CallbackQueryHandler(handle_button))
+    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 
-    logger.info("Bot rodando e conectado à IA...")
-    app.run_polling()
+    logger.info("Bot completo com IA conversacional ativado...")
+    application.run_polling()
 
 if __name__ == "__main__":
     main()
