@@ -1,178 +1,70 @@
 import os
-import logging
-import urllib.parse
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CallbackQueryHandler, CommandHandler, filters
 from groq import Groq
 from dotenv import load_dotenv
 
-# Carrega as variáveis de ambiente
+# Carrega as variáveis de ambiente (certifique-se de ter o GROQ_API_KEY no seu .env ou substitua abaixo)
 load_dotenv()
-
-TOKEN = os.getenv("TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# O seu ID de afiliado oficial do Mercado Livre
-AFFILIATE_TAG = "Fe20250121204050"
-
-# O seu ID pessoal de Administrador no Telegram para receber os avisos
-MEU_ADMIN_ID = "7780082282" 
-
-# Substitua pelo seu nome de utilizador (username) do Telegram no suporte
-SEU_USER_TELEGRAM = "SeuUsuarioTelegram"
-
-# Conjunto para guardar os IDs únicos dos utilizadores
-utilizadores_unicos = set()
-
-# Configuração básica de logs
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
-)
-logger = logging.getLogger(__name__)
+if not GROQ_API_KEY:
+    print("⚠️ ERRO: A chave GROQ_API_KEY não foi encontrada nas variáveis de ambiente.")
+    exit()
 
 # Inicializa o cliente da Groq
-groq_client = Groq(api_key=GROQ_API_KEY) if Groq(api_key=GROQ_API_KEY) else None
+groq_client = Groq(api_key=GROQ_API_KEY)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    user_id = user.id
-    user_name = user.first_name
+# Instrução de Sistema: Define a personalidade e o comportamento conversacional da IA
+system_instruction = (
+    "Tu és o assistente de vendas e especialista em produtos do **MERCADO LIVRE**. "
+    "O teu objetivo principal é conversar de forma natural e amigável com o cliente, fazer perguntas inteligentes "
+    "para descobrir exatamente o que ele procura (como faixa de preço, marca desejada, finalidade do produto) "
+    "e ajudá-lo a encontrar a melhor opção antes de sugerir links de compra. "
+    "REGRA OBRIGATÓRIA 1: Escreve INTEIRAMENTE EM LETRAS MAIÚSCULAS (CAPSLOCK). "
+    "REGRA OBRIGATÓRIA 2: Sê dinâmico, usa emojis comerciais, sê prestativo e nunca encerre a conversa de forma seca; faça sempre uma pergunta para continuar o diálogo."
+)
 
-    if user_id not in utilizadores_unicos:
-        utilizadores_unicos.add(user_id)
-        
-        if MEU_ADMIN_ID:
-            try:
-                aviso_admin = f"🚨 *NOVO CLIENTE NO BOT!*\n\n👤 Nome: {user_name}\n🆔 ID: `{user_id}`\n👥 Total de clientes: {len(utilizadores_unicos)}"
-                await context.bot.send_message(chat_id=int(MEU_ADMIN_ID), text=aviso_admin, parse_mode="Markdown")
-            except Exception as e:
-                logger.error(f"Erro ao enviar aviso para o admin: {e}")
+def testar_chat():
+    print("=" * 60)
+    print("🤖 TESTE DE CONVERSA COM A IA DO MERCADO LIVRE")
+    print("Digite 'sair' para encerrar o teste.")
+    print("=" * 60)
 
-    welcome_message = (
-        f"OLÁ, {user_name.upper()}! 🔥 SEJA MUITO BEM-VINDO AO SEU ASSISTENTE DE COMPRAS!\n\n"
-        "EU SOU O SEU ESPECIALISTA EM PRODUTOS DO **MERCADO LIVRE**. "
-        "O MEU OBJETIVO É CONVERSAR COM VOCÊ, ENTENDER EXATAMENTE O QUE VOCÊ PRECISA E ACHAR O MELHOR PREÇO!\n\n"
-        "👉 *ME CONTE: O QUE VOCÊ ESTÁ PROCURANDO OU QUER QUE EU TE AJUDE A ESCOLHER ALGO?*"
-    )
-
-    keyboard = [
-        [
-            InlineKeyboardButton("📱 CELULARES & ACESSÓRIOS", callback_data="celular"),
-            InlineKeyboardButton("🛠️ FERRAMENTAS", callback_data="ferramentas")
-        ],
-        [
-            InlineKeyboardButton("🏠 CASA E COZINHA", callback_data="utilidades para casa"),
-            InlineKeyboardButton("💻 INFORMÁTICA", callback_data="notebook e eletronicos")
-        ],
-        [
-            InlineKeyboardButton("🔥 VER OFERTAS DO DIA", callback_data="ofertas imperdíveis no mercado livre")
-        ]
+    # Histórico para manter o contexto da conversa (lembrar o que foi dito antes)
+    mensagens_historico = [
+        {"role": "system", "content": system_instruction}
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text(welcome_message, reply_markup=reply_markup, parse_mode="Markdown")
+    while True:
+        try:
+            user_input = input("\n👤 Você (Cliente): ")
+            if user_input.strip().lower() == 'sair':
+                print("Encerrando teste...")
+                break
 
-async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    total_pessoas = len(utilizadores_unicos)
-    await update.message.reply_text(
-        f"📊 *ESTATÍSTICAS DO BOT:*\n\n"
-        f"👥 Total de pessoas únicas que já acederam: **{total_pessoas}**",
-        parse_mode="Markdown"
-    )
+            if not user_input.strip():
+                continue
 
-async def processar_busca(update_obj, context, chat_id, user, user_text):
-    if user.id not in utilizadores_unicos:
-        utilizadores_unicos.add(user.id)
+            # Adiciona a mensagem do utilizador ao histórico
+            mensagens_historico.append({"role": "user", "content": user_input})
 
-    await context.bot.send_chat_action(chat_id=chat_id, action="typing")
-
-    ai_response = ""
-
-    try:
-        if groq_client:
-            # Instrução focada em diálogo interativo e descoberta de intenção
-            system_instruction = (
-                "Tu és o assistente de vendas e especialista em produtos do **MERCADO LIVRE**. "
-                "O teu papel é interagir ativamente com o cliente, fazer perguntas para identificar exatamente o que ele quer (como marca, faixa de preço, uso pretendido) "
-                "e dar recomendações excelentes. "
-                "REGRA OBRIGATÓRIA 1: Escreve INTEIRAMENTE EM LETRAS MAIÚSCULAS (CAPSLOCK) para dar máximo destaque. "
-                "REGRA OBRIGATÓRIA 2: Se o cliente disser apenas um cumprimento (como 'olá', 'oi') ou for muito vago, NÃO inventes um produto. Em vez disso, conversa com ele, acolhe-o e pergunta qual tipo de produto ou categoria ele tem interesse em ver hoje. "
-                "REGRA OBRIGATÓRIA 3: Sê dinâmico, usa emojis comerciais, conversa como um vendedor experiente e prestativo."
-            )
-
+            # Envia para a Groq mantendo o histórico da conversa
             completion = groq_client.chat.completions.create(
                 model="llama-3.1-8b-instant",
-                messages=[
-                    {"role": "system", "content": system_instruction},
-                    {"role": "user", "content": user_text}
-                ],
+                messages=mensagens_historico,
                 temperature=0.7,
                 max_tokens=1024,
             )
+
             ai_response = completion.choices[0].message.content
-    except Exception as e:
-        logger.error(f"Aviso: Erro na API da Groq: {e}")
 
-    # Tratamento inteligente para definir o link com base no que o cliente disse
-    texto_limpo = user_text.strip().lower()
-    saudacoes = ["ola", "olá", "oi", "bom dia", "boa tarde", "boa noite", "tudo bem", "eae"]
+            # Mostra a resposta da IA
+            print(f"\n🤖 IA (Marlin das Ofertas): {ai_response}")
 
-    if not ai_response:
-        ai_response = f"QUE EXCELENTE ESCOLHA! VOU TE AJUDAR A ENCONTRAR AS MELHORES OPÇÕES PARA '{user_text.upper()}' NO MERCADO LIVRE COM PREÇO BAIXO!"
+            # Adiciona a resposta da IA ao histórico para ela lembrar na próxima frase
+            mensagens_historico.append({"role": "assistant", "content": ai_response})
 
-    # Se for saudação ou frase muito vaga de bate-papo, manda para as ofertas gerais; se for produto claro, faz a busca
-    if texto_limpo in saudacoes or len(texto_limpo) < 3:
-        affiliate_link = f"https://www.mercadolivre.com.br/ofertas?matt_tool={AFFILIATE_TAG}"
-    else:
-        query_encoded = urllib.parse.quote(user_text)
-        affiliate_link = f"https://lista.mercadolivre.com.br/{query_encoded}#D[A:{query_encoded},ontrend:true]&matt_tool={AFFILIATE_TAG}"
-
-    support_link = f"https://t.me/{SEU_USER_TELEGRAM}"
-
-    keyboard = [
-        [InlineKeyboardButton("🛒 VER OFERTA NO MERCADO LIVRE", url=affiliate_link)],
-        [InlineKeyboardButton("💬 FALAR COM O SUPORTE", url=support_link)]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text=ai_response,
-        reply_markup=reply_markup
-    )
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_text = update.message.text
-    chat_id = update.effective_chat.id
-    user = update.effective_user
-    await processar_busca(update, context, chat_id, user, user_text)
-
-async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer() 
-    
-    user_text = query.data  
-    chat_id = query.message.chat_id
-    user = query.from_user
-
-    await processar_busca(update, context, chat_id, user, user_text)
-
-def main():
-    if not TOKEN:
-        logger.error("Erro: TOKEN do Telegram não definido.")
-        return
-
-    application = ApplicationBuilder().token(TOKEN).build()
-
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("stats", stats))
-    application.add_handler(CallbackQueryHandler(handle_button))
-    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-
-    logger.info("Bot altamente interativo e focado em identificar o cliente ativado...")
-    application.run_polling()
+        except Exception as e:
+            print(f"\n❌ Erro na comunicação com a API: {e}")
 
 if __name__ == "__main__":
-    main()
-    
+    testar_chat()
