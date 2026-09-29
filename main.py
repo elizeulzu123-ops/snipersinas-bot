@@ -2,7 +2,7 @@ import os
 import logging
 import urllib.parse
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, filters
+from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CallbackQueryHandler, CommandHandler, filters
 from groq import Groq
 from dotenv import load_dotenv
 
@@ -28,7 +28,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Inicializa o cliente da Groq apenas se a chave existir
+# Inicializa o cliente da Groq
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -40,7 +40,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user_id not in utilizadores_unicos:
         utilizadores_unicos.add(user_id)
         
-        # Envia a notificação diretamente para o seu chat privado
         if MEU_ADMIN_ID:
             try:
                 aviso_admin = f"🚨 *Novo cliente no bot!*\n\n👤 Nome: {user_name}\n🆔 ID: `{user_id}`\n👥 Total de clientes: {len(utilizadores_unicos)}"
@@ -52,11 +51,28 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Olá, {user_name}! 🔥 Seja muito bem-vindo!\n\n"
         "Eu sou o seu assistente de compras inteligente. O meu objetivo é ajudar-lo a encontrar "
         "as melhores promoções, descontos e os preços mais baixos do mercado!\n\n"
-        "Diga-me: o que é que procura hoje? (Ex: smartphone Motorola, fones bluetooth, ferramentas)..."
+        "Pode escolher uma das categorias rápidas abaixo ou simplesmente **digitar o que procura** (Ex: furadeira, smart TV, tênis)..."
     )
-    await update.message.reply_text(welcome_message)
 
-# Comando para ver as estatísticas a qualquer momento
+    # Botões interativos de categorias rápidas
+    keyboard = [
+        [
+            InlineKeyboardButton("📱 Celulares & Acessórios", callback_data="celular"),
+            InlineKeyboardButton("🛠️ Ferramentas", callback_data="ferramentas")
+        ],
+        [
+            InlineKeyboardButton("🏠 Casa e Cozinha", callback_data="utilidades para casa"),
+            InlineKeyboardButton("💻 Informática", callback_data="notebook e eletronicos")
+        ],
+        [
+            InlineKeyboardButton("🔥 Ver Ofertas do Dia", callback_data="ofertas imperdíveis no mercado livre")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text(welcome_message, reply_markup=reply_markup)
+
+# Comando para ver as estatísticas
 async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     total_pessoas = len(utilizadores_unicos)
     await update.message.reply_text(
@@ -64,11 +80,8 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"👥 Total de pessoas únicas que já acederam: **{total_pessoas}**"
     )
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_text = update.message.text
-    chat_id = update.effective_chat.id
-    user = update.effective_user
-
+# Função central que processa o texto (seja por mensagem digitada ou clique em botões)
+async def processar_busca(update_obj, context, chat_id, user, user_text):
     if user.id not in utilizadores_unicos:
         utilizadores_unicos.add(user.id)
 
@@ -81,10 +94,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if groq_client:
             system_instruction = (
                 "Tu és um assistente de vendas altamente persuasivo, especialista em encontrar promoções, "
-                "descontos e as melhores ofertas do mercado para os utilizadores. "
-                "O teu objetivo é analisar o que o cliente procura, dar conselhos úteis sobre os melhores "
-                "produtos e incentivá-los a verificar as ofertas. Sê dinâmico, usa emojis adequados "
-                "e mantém um tom entusiasmado e prestativo. Escreve respostas curtas e cativantes."
+                "descontos e as melhores ofertas do Mercado Livre para os utilizadores. "
+                "O teu objetivo é analisar o que o cliente procura, dar conselhos úteis e entusiasmados "
+                "sobre os produtos e incentivá-los a verificar as ofertas. Sê dinâmico, usa emojis adequados "
+                "e escreve respostas curtas, cativantes e amigáveis."
             )
 
             completion = groq_client.chat.completions.create(
@@ -103,6 +116,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not ai_response:
         ai_response = f"Encontrei ótimas opções e promoções imperdíveis para '{user_text}' com os melhores preços do mercado!"
 
+    # Gera o link dinâmico com o código de afiliado
     query_encoded = urllib.parse.quote(user_text)
     affiliate_link = f"https://lista.mercadolivre.com.br/{query_encoded}#D[A:{query_encoded},ontrend:true]&matt_tool={AFFILIATE_TAG}"
 
@@ -111,10 +125,29 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text(
-        ai_response, 
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=ai_response,
         reply_markup=reply_markup
     )
+
+# Handler para mensagens de texto comuns
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_text = update.message.text
+    chat_id = update.effective_chat.id
+    user = update.effective_user
+    await processar_busca(update, context, chat_id, user, user_text)
+
+# Handler para quando o utilizador clica num botão de categoria
+async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer() # Fecha o loading do botão no Telegram
+    
+    user_text = query.data  # O valor guardado no callback_data vira a busca
+    chat_id = query.message.chat_id
+    user = query.from_user
+
+    await processar_busca(update, context, chat_id, user, user_text)
 
 def main():
     if not TOKEN:
@@ -125,9 +158,10 @@ def main():
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("stats", stats))
+    application.add_handler(CallbackQueryHandler(handle_button))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 
-    logger.info("Bot com notificações e link de afiliado pronto a funcionar...")
+    logger.info("Bot com botões de categorias e IA ativo...")
     application.run_polling()
 
 if __name__ == "__main__":
