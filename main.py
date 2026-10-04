@@ -96,12 +96,12 @@ def teclado_marcas() -> InlineKeyboardMarkup:
 
         [
             InlineKeyboardButton(
-                "🔴 BOSCH",
+                "BOSCH",
                 callback_data="marca_BOSCH",
-                style="danger"
+                style="primary"
             ),
             InlineKeyboardButton(
-                "🔵 MAKITA",
+                "MAKITA",
                 callback_data="marca_MAKITA",
                 style="primary"
             )
@@ -109,12 +109,12 @@ def teclado_marcas() -> InlineKeyboardMarkup:
 
         [
             InlineKeyboardButton(
-                "� DEWALT",
+                "DEWALT",
                 callback_data="marca_DEWALT",
-                style="success"
+                style="primary"
             ),
             InlineKeyboardButton(
-                "⚫ BLACK+DECKER",
+                "BLACK+DECKER",
                 callback_data="marca_BLACK+DECKER",
                 style="primary"
             )
@@ -122,12 +122,12 @@ def teclado_marcas() -> InlineKeyboardMarkup:
 
         [
             InlineKeyboardButton(
-                "� STANLEY",
+                "STANLEY",
                 callback_data="marca_STANLEY",
-                style="success"
+                style="primary"
             ),
             InlineKeyboardButton(
-                "� MONDIAL",
+                "MONDIAL",
                 callback_data="marca_MONDIAL",
                 style="primary"
             )
@@ -135,14 +135,14 @@ def teclado_marcas() -> InlineKeyboardMarkup:
 
         [
             InlineKeyboardButton(
-                "🔷 PHILCO",
+                "PHILCO",
                 callback_data="marca_PHILCO",
                 style="primary"
             ),
             InlineKeyboardButton(
-                "� VONDER",
+                "VONDER",
                 callback_data="marca_VONDER",
-                style="success"
+                style="primary"
             )
         ],
 
@@ -230,7 +230,7 @@ async def mensagem_rodape(
                     InlineKeyboardButton(
                         "🔩 PARAFUSADEIRAS",
                         callback_data="lista_parafusadeira",
-                        style="success"
+                        style="primary"
                     )
                 ],
 
@@ -304,6 +304,7 @@ async def acao_botao(
         await query.edit_message_text(
 
             "🔩 PARAFUSADEIRAS — ESCOLHA A MARCA!\n\n"
+
             "Clique na marca para ver as ofertas disponíveis! 🎯",
 
             reply_markup=teclado_marcas()
@@ -336,7 +337,7 @@ async def acao_botao(
                     InlineKeyboardButton(
                         f"🛒 VER {marca} NO MERCADO LIVRE",
                         url=link,
-                        style="success"
+                        style="primary"
                     )
                 ],
 
@@ -382,7 +383,7 @@ def main():
     logger.info("=" * 60)
 
     logger.info(
-        "🐠 MARLIN DAS OFERTAS — BOTÕES COLORIDOS!"
+        "🐠 MARLIN DAS OFERTAS — BOTÕES AZUIS!"
     )
 
     logger.info(
@@ -390,7 +391,11 @@ def main():
     )
 
     logger.info(
-        "✅ Botões Inline com estilos Primary / Success / Danger"
+        "✅ Todas as marcas em azul"
+    )
+
+    logger.info(
+        "✅ Botões VOLTAR em vermelho"
     )
 
     logger.info(
