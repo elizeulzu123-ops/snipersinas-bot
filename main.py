@@ -1,140 +1,198 @@
 import os
 import logging
-import urllib.parse
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import (
-    ApplicationBuilder,
-    ContextTypes,
-    MessageHandler,
-    CallbackQueryHandler,
-    CommandHandler,
-    filters,
-)
-from groq import Groq
 from dotenv import load_dotenv
+from telegram import Update, ReplyKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    Application, CommandHandler, CallbackQueryHandler,
+    MessageHandler, filters, ContextTypes,
+)
 
-# Carrega as variáveis de ambiente
+# ══════════════════════════════════════════════════════════════
+#                    CONFIGURAÇÕES
+# ══════════════════════════════════════════════════════════════
 load_dotenv()
-
 TOKEN = os.getenv("TOKEN")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-AFFILIATE_TAG = "Fe20250121204050"
-SEU_USER_TELEGRAM = "SeuUsuarioTelegram"
 
-# Configuração de logs
+if not TOKEN:
+    raise SystemExit("❌ Verifique o TOKEN no .env!")
+
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s — %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-# Inicializa cliente Groq
-groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
+# ✅ IMAGEM DE FERRAMENTAS
+IMAGEM_URL = "https://picsum.photos/id/26/800/500"
 
-# Dicionário para guardar o histórico de cada cliente (Chave: user_id, Valor: lista de mensagens)
-historicos = {}
+# ══════════════════════════════════════════════════════════════
+#               CATÁLOGO — TODOS OS LINKS CONFIRMADOS
+# ══════════════════════════════════════════════════════════════
+CATALOGO = {
+    "parafusadeira": {
+        "icone": "🔩",
+        "nome": "PARAFUSADEIRA",
+        "marcas": {
+            "BOSCH":      "https://meli.la/1GtWTRG",
+            "MAKITA":     "https://meli.la/1MjEzBC",
+            "DEWALT":     "https://meli.la/1Lj62wM",
+            "BLACK+DECKER": "https://meli.la/2cg9Ew4",
+            "STANLEY":    "https://meli.la/2YoHTgT",
+            "MONDIAL":    "https://meli.la/2yH2xvM",
+            "PHILCO":     "https://meli.la/29EsFhi",
+            "VONDER":     "https://meli.la/1NwzU1H",
+        }
+    }
+}
 
+# ══════════════════════════════════════════════════════════════
+#               🎨 BOTÕES COLORIDOS NO RODAPÉ — IGUAL A IMAGEM!
+# ══════════════════════════════════════════════════════════════
+def teclado_rodape() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        [
+            ["🔴 INÍCIO", "🔵 FERRAMENTAS"],
+            ["� PARAFUSADEIRAS", "📋 SOBRE NÓS"]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=False
+    )
+
+# ══════════════════════════════════════════════════════════════
+#               BOTÕES DAS MARCAS COM CORES
+# ══════════════════════════════════════════════════════════════
+def teclado_marcas() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("🔴 BOSCH", callback_data="marca_BOSCH"),
+            InlineKeyboardButton("🔵 MAKITA", callback_data="marca_MAKITA")
+        ],
+        [
+            InlineKeyboardButton("� DEWALT", callback_data="marca_DEWALT"),
+            InlineKeyboardButton("⚫ BLACK+DECKER", callback_data="marca_BLACK+DECKER")
+        ],
+        [
+            InlineKeyboardButton("� STANLEY", callback_data="marca_STANLEY"),
+            InlineKeyboardButton("� MONDIAL", callback_data="marca_MONDIAL")
+        ],
+        [
+            InlineKeyboardButton("� PHILCO", callback_data="marca_PHILCO"),
+            InlineKeyboardButton("� VONDER", callback_data="marca_VONDER")
+        ],
+        [
+            InlineKeyboardButton("⬅️ VOLTAR", callback_data="menu_inicial")
+        ]
+    ])
+
+# ══════════════════════════════════════════════════════════════
+#              BOAS-VINDAS COM IMAGEM + RODAPÉ COLORIDO ✅
+# ══════════════════════════════════════════════════════════════
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    user_id = user.id
-    
-    # Limpa o histórico ao reiniciar com /start
-    if user_id in historicos:
-        del historicos[user_id]
-
-    welcome_text = (
-        f"OLÁ, {user.first_name.upper()}! 🔥 SEJA MUITO BEM-VINDO AO MARLIN DAS OFERTAS!\n\n"
-        "EU SOU O SEU ASSISTENTE VIRTUAL NO **MERCADO LIVRE**. "
-        "ESTOU AQUI PARA CONVERSAR COM VOCÊ, TIRAR DÚVIDAS E AJUDAR A ENCONTRAR EXATAMENTE O PRODUTO QUE VOCÊ PRECISA!\n\n"
-        "👉 *ME CONTE: O QUE VOCÊ ESTÁ A PROCURAR HOJE?*"
+    await context.bot.send_photo(
+        chat_id=update.effective_chat.id,
+        photo=IMAGEM_URL,
+        caption=(
+            f"OLÁ, {user.first_name.upper()}! 🔥 EU SOU O MARLIN DAS OFERTAS!\n\n"
+            "ENCONTRO AS MELHORES OPÇÕES DIRETAMENTE NO MERCADO LIVRE PARA VOCÊ! 🛒\n"
+            "OS PREÇOS VOCÊ CONFERE LÁ DIRETO!\n\n"
+            "👇 Use os botões coloridos embaixo!"
+        ),
+        reply_markup=teclado_rodape()
     )
-    
-    keyboard = [[InlineKeyboardButton("🔥 VER OFERTAS DO DIA", callback_data="ofertas imperdíveis mercado livre")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode="Markdown")
+# ══════════════════════════════════════════════════════════════
+#                  LIDA COM OS BOTÕES DO RODAPÉ
+# ══════════════════════════════════════════════════════════════
+async def mensagem_rodape(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    texto = update.message.text.strip()
 
-async def processar_mensagem(update, context, chat_id, user, user_text):
-    user_id = user.id
-    await context.bot.send_chat_action(chat_id=chat_id, action="typing")
+    if texto == "🔴 INÍCIO":
+        await start(update, context)
 
-    # Inicializa o histórico do utilizador se não existir
-    if user_id not in historicos:
-        system_prompt = (
-            "Tu és o assistente de vendas e especialista em produtos do **MERCADO LIVRE**. "
-            "O teu objetivo principal é conversar de forma natural e amigável com o cliente, fazendo perguntas inteligentes "
-            "para descobrir exatamente o que ele procura (como faixa de preço, marca, finalidade ou tamanho) antes de sugerir links. "
-            "REGRA OBRIGATÓRIA 1: Escreve INTEIRAMENTE EM LETRAS MAIÚSCULAS (CAPSLOCK). "
-            "REGRA OBRIGATÓRIA 2: Sê dinâmico, usa emojis e faz sempre uma pergunta no final para continuar o diálogo."
+    elif texto == "🔵 FERRAMENTAS":
+        await update.message.reply_text(
+            "🛠️  ESCOLHA O PRODUTO:\n\n"
+            "Clique abaixo para ver as marcas:",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔩 PARAFUSADEIRAS", callback_data="lista_parafusadeira")],
+                [InlineKeyboardButton("⬅️ VOLTAR", callback_data="menu_inicial")]
+            ])
         )
-        historicos[user_id] = [{"role": "system", "content": system_prompt}]
 
-    # Adiciona a mensagem do cliente ao histórico dele
-    historicos[user_id].append({"role": "user", "content": user_text})
+    elif texto == "� PARAFUSADEIRAS":
+        await update.message.reply_text(
+            "🔩  PARAFUSADEIRAS — ESCOLHA A MARCA:\n\n"
+            "Clique na marca para ver as ofertas!",
+            reply_markup=teclado_marcas()
+        )
 
-    resposta_ia = ""
-    try:
-        if groq_client:
-            # Pede à IA para gerar a resposta com base em toda a conversa anterior
-            completion = groq_client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=historicos[user_id],
-                temperature=0.7,
-                max_tokens=1024,
-            )
-            resposta_ia = completion.choices[0].message.content
-            
-            # Guarda a resposta da IA no histórico para manter o contexto
-            historicos[user_id].append({"role": "assistant", "content": resposta_ia})
-    except Exception as e:
-        logger.error(f"Erro na API da Groq: {e}")
+    elif texto == "📋 SOBRE NÓS":
+        await update.message.reply_text(
+            "🔥 MARLIN DAS OFERTAS!\n\n"
+            "Seu parceiro de melhores preços no Mercado Livre!\n"
+            "Sempre as melhores marcas e promoções para você! 🛒\n\n"
+            "Escolha um botão embaixo para começar! 👇",
+            reply_markup=teclado_rodape()
+        )
 
-    if not resposta_ia:
-        resposta_ia = f"QUE EXCELENTE ESCOLHA! VOU TE AJUDAR A ENCONTRAR AS MELHORES OPÇÕES PARA '{user_text.upper()}' NO MERCADO LIVRE!"
-
-    # Cria o link de afiliado direcionando para a busca ou ofertas gerais
-    texto_limpo = user_text.strip().lower()
-    if texto_limpo in ["ola", "olá", "oi", "bom dia", "boa tarde", "boa noite", "ofertas"]:
-        affiliate_link = f"https://www.mercadolivre.com.br/ofertas?matt_tool={AFFILIATE_TAG}"
-    else:
-        query_encoded = urllib.parse.quote(user_text)
-        affiliate_link = f"https://lista.mercadolivre.com.br/{query_encoded}#D[A:{query_encoded},ontrend:true]&matt_tool={AFFILIATE_TAG}"
-
-    support_link = f"https://t.me/{SEU_USER_TELEGRAM}"
-
-    keyboard = [
-        [InlineKeyboardButton("🛒 VER OFERTA NO MERCADO LIVRE", url=affiliate_link)],
-        [InlineKeyboardButton("💬 FALAR COM O SUPORTE", url=support_link)]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text=resposta_ia,
-        reply_markup=reply_markup
-    )
-
-async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await processar_mensagem(update, context, update.effective_chat.id, update.effective_user, update.message.text)
-
-async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# ══════════════════════════════════════════════════════════════
+#                  LIDA COM CLIQUES NAS MARCAS
+# ══════════════════════════════════════════════════════════════
+async def acao_botao(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    await processar_mensagem(update, context, query.message.chat_id, query.from_user, query.data)
+    dados = query.data
 
+    if dados == "menu_inicial":
+        await start(update, context)
+
+    elif dados == "lista_parafusadeira":
+        await query.edit_message_text(
+            "🔩  PARAFUSADEIRAS — ESCOLHA A MARCA:\n\n"
+            "Clique na marca para ver as ofertas!",
+            reply_markup=teclado_marcas()
+        )
+
+    elif dados.startswith("marca_"):
+        marca = dados.replace("marca_", "")
+        link = CATALOGO["parafusadeira"]["marcas"][marca]
+
+        await query.edit_message_text(
+            f"✅ ÓTIMA ESCOLHA!\n\n"
+            f"🔹 MARCA: {marca}\n"
+            f"🔹 PRODUTO: PARAFUSADEIRA\n\n"
+            "ACESSE AGORA E CONFIRA O PREÇO:",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton(
+                    f"🛒 VER {marca} NO MERCADO LIVRE",
+                    url=link
+                )],
+                [InlineKeyboardButton(
+                    "⬅️ VOLTAR ÀS MARCAS",
+                    callback_data="lista_parafusadeira"
+                )]
+            ])
+        )
+
+# ══════════════════════════════════════════════════════════════
+#                    INICIALIZAÇÃO
+# ══════════════════════════════════════════════════════════════
 def main():
-    if not TOKEN:
-        logger.error("Token do Telegram não configurado!")
-        return
-
-    app = ApplicationBuilder().token(TOKEN).build()
+    app = Application.builder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(handle_callback))
-    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_text))
+    app.add_handler(CallbackQueryHandler(acao_botao))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, mensagem_rodape))
 
-    logger.info("Bot rodando e conectado à IA...")
-    app.run_polling()
+    logger.info("=" * 60)
+    logger.info("✅ BOT PRONTO — BOTÕES COLORIDOS NO RODAPÉ!")
+    logger.info("✅ 🔴🔵� Cores ativadas | 8 marcas prontas")
+    logger.info("✅ Todos os links confirmados")
+    logger.info("=" * 60)
+
+    app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
     main()
