@@ -1,39 +1,59 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 import os
 import logging
+
 from dotenv import load_dotenv
-from telegram import Update, ReplyKeyboardMarkup
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import (
-    Application, CommandHandler, CallbackQueryHandler,
-    MessageHandler, filters, ContextTypes,
+
+from telegram import (
+    Update,
+    ReplyKeyboardMarkup,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
 )
+
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    CallbackQueryHandler,
+    MessageHandler,
+    filters,
+    ContextTypes,
+)
+
 
 # ══════════════════════════════════════════════════════════════
 #                    CONFIGURAÇÕES
 # ══════════════════════════════════════════════════════════════
+
 load_dotenv()
+
 TOKEN = os.getenv("TOKEN")
 
 if not TOKEN:
     raise SystemExit("❌ Verifique o TOKEN no .env!")
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s — %(message)s"
 )
+
 logger = logging.getLogger(__name__)
 
 IMAGEM_URL = "https://picsum.photos/id/175/800/500"
 
+
 # ══════════════════════════════════════════════════════════════
-#               CATÁLOGO
+#                         CATÁLOGO
 # ══════════════════════════════════════════════════════════════
+
 CATALOGO = {
     "parafusadeira": {
         "icone": "🔩",
         "nome": "PARAFUSADEIRA",
+
         "marcas": {
             "BOSCH":        "https://meli.la/1GtWTRG",
             "MAKITA":       "https://meli.la/1MjEzBC",
@@ -47,152 +67,347 @@ CATALOGO = {
     }
 }
 
+
 # ══════════════════════════════════════════════════════════════
-#               ✅ RODAPÉ AJUSTADO — SEM REPETIÇÃO
+#                    RODAPÉ FIXO
 # ══════════════════════════════════════════════════════════════
+
 def teclado_rodape() -> ReplyKeyboardMarkup:
+
     return ReplyKeyboardMarkup(
         [
             ["🔴 INÍCIO", "🔵 FERRAMENTAS"],
             ["📋 SOBRE NÓS"]
         ],
         resize_keyboard=True,
-        one_time_keyboard=False
+        one_time_keyboard=False,
+        is_persistent=True,
+        selective=False
     )
 
-# ══════════════════════════════════════════════════════════════
-#               BOTÕES DAS MARCAS
-# ══════════════════════════════════════════════════════════════
-def teclado_marcas() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton("🔴 BOSCH", callback_data="marca_BOSCH"),
-            InlineKeyboardButton("🔵 MAKITA", callback_data="marca_MAKITA")
-        ],
-        [
-            InlineKeyboardButton("🟡 DEWALT", callback_data="marca_DEWALT"),
-            InlineKeyboardButton("⚫ BLACK+DECKER", callback_data="marca_BLACK+DECKER")
-        ],
-        [
-            InlineKeyboardButton("🟤 STANLEY", callback_data="marca_STANLEY"),
-            InlineKeyboardButton("🟢 MONDIAL", callback_data="marca_MONDIAL")
-        ],
-        [
-            InlineKeyboardButton("🔷 PHILCO", callback_data="marca_PHILCO"),
-            InlineKeyboardButton("🟠 VONDER", callback_data="marca_VONDER")
-        ],
-        [
-            InlineKeyboardButton("⬅️ VOLTAR", callback_data="menu_inicial")
-        ]
-    ])
 
 # ══════════════════════════════════════════════════════════════
-#              BOAS-VINDAS
+#                    BOTÕES DAS MARCAS
 # ══════════════════════════════════════════════════════════════
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+def teclado_marcas() -> InlineKeyboardMarkup:
+
+    return InlineKeyboardMarkup([
+
+        [
+            InlineKeyboardButton(
+                "🔴 BOSCH",
+                callback_data="marca_BOSCH",
+                style="danger"
+            ),
+            InlineKeyboardButton(
+                "🔵 MAKITA",
+                callback_data="marca_MAKITA",
+                style="primary"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "� DEWALT",
+                callback_data="marca_DEWALT",
+                style="success"
+            ),
+            InlineKeyboardButton(
+                "⚫ BLACK+DECKER",
+                callback_data="marca_BLACK+DECKER",
+                style="primary"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "� STANLEY",
+                callback_data="marca_STANLEY",
+                style="success"
+            ),
+            InlineKeyboardButton(
+                "� MONDIAL",
+                callback_data="marca_MONDIAL",
+                style="primary"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "🔷 PHILCO",
+                callback_data="marca_PHILCO",
+                style="primary"
+            ),
+            InlineKeyboardButton(
+                "� VONDER",
+                callback_data="marca_VONDER",
+                style="success"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "⬅️ VOLTAR",
+                callback_data="menu_inicial",
+                style="danger"
+            )
+        ]
+
+    ])
+
+
+# ══════════════════════════════════════════════════════════════
+#                       BOAS-VINDAS
+# ══════════════════════════════════════════════════════════════
+
+async def start(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
     user = update.effective_user
     nome = user.first_name or "amigo"
 
     await context.bot.send_photo(
+
         chat_id=update.effective_chat.id,
+
         photo=IMAGEM_URL,
+
         caption=(
             f"🐠 OLÁ, {nome.upper()}! SEJA MUITO BEM-VINDO!\n\n"
+
             "Eu sou o MARLIN DAS OFERTAS!\n"
-            "Seu parceiro de confiança nas melhores oportunidades do Mercado Livre! 💎\n\n"
-            "Aqui você encontra as melhores marcas, os melhores preços e sempre com segurança! 💰\n\n"
+            "Seu parceiro de confiança nas melhores "
+            "oportunidades do Mercado Livre! 💎\n\n"
+
+            "Aqui você encontra as melhores marcas, "
+            "os melhores preços e sempre com segurança! 💰\n\n"
+
             "👇 Escolha uma opção abaixo e vamos lá!"
         ),
+
         reply_markup=teclado_rodape()
     )
 
+
 # ══════════════════════════════════════════════════════════════
-#                  LIDA COM OS BOTÕES DO RODAPÉ
+#                  BOTÕES DO RODAPÉ
 # ══════════════════════════════════════════════════════════════
-async def mensagem_rodape(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+async def mensagem_rodape(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
     texto = update.message.text.strip()
 
+
+    # ──────────────────────────────────────────────────────────
+    # INÍCIO
+    # ──────────────────────────────────────────────────────────
+
     if texto == "🔴 INÍCIO":
+
         await start(update, context)
 
+
+    # ──────────────────────────────────────────────────────────
+    # FERRAMENTAS
+    # ──────────────────────────────────────────────────────────
+
     elif texto == "🔵 FERRAMENTAS":
+
         await update.message.reply_text(
+
             "🛠️ FERRAMENTAS\n\n"
             "Escolha o que você está procurando:",
+
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔩 PARAFUSADEIRAS", callback_data="lista_parafusadeira")],
-                [InlineKeyboardButton("⬅️ VOLTAR AO INÍCIO", callback_data="menu_inicial")]
+
+                [
+                    InlineKeyboardButton(
+                        "🔩 PARAFUSADEIRAS",
+                        callback_data="lista_parafusadeira",
+                        style="success"
+                    )
+                ],
+
+                [
+                    InlineKeyboardButton(
+                        "⬅️ VOLTAR AO INÍCIO",
+                        callback_data="menu_inicial",
+                        style="danger"
+                    )
+                ]
+
             ])
         )
 
+
+    # ──────────────────────────────────────────────────────────
+    # SOBRE NÓS
+    # ──────────────────────────────────────────────────────────
+
     elif texto == "📋 SOBRE NÓS":
+
         await update.message.reply_text(
+
             "🔥 QUEM SOMOS NÓS?\n\n"
-            "Somos o MARLIN DAS OFERTAS — conectando você às melhores promoções do Mercado Livre! 🛒\n\n"
+
+            "Somos o MARLIN DAS OFERTAS — conectando você "
+            "às melhores promoções do Mercado Livre! 🛒\n\n"
+
             "✅ Produtos de qualidade\n"
             "✅ Marcas confiáveis\n"
             "✅ Preços direto da fonte\n"
             "✅ Segurança em cada compra\n\n"
+
             "Escolha uma opção abaixo e comece a economizar! 💸",
+
             reply_markup=teclado_rodape()
         )
 
+
 # ══════════════════════════════════════════════════════════════
-#                  LIDA COM CLIQUES NAS MARCAS
+#                  CLIQUES NOS BOTÕES
 # ══════════════════════════════════════════════════════════════
-async def acao_botao(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+async def acao_botao(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
     query = update.callback_query
+
     await query.answer()
+
     dados = query.data
 
+
+    # ──────────────────────────────────────────────────────────
+    # VOLTAR AO INÍCIO
+    # ──────────────────────────────────────────────────────────
+
     if dados == "menu_inicial":
+
         await start(update, context)
 
+
+    # ──────────────────────────────────────────────────────────
+    # LISTA DE PARAFUSADEIRAS
+    # ──────────────────────────────────────────────────────────
+
     elif dados == "lista_parafusadeira":
+
         await query.edit_message_text(
+
             "🔩 PARAFUSADEIRAS — ESCOLHA A MARCA!\n\n"
             "Clique na marca para ver as ofertas disponíveis! 🎯",
+
             reply_markup=teclado_marcas()
         )
 
+
+    # ──────────────────────────────────────────────────────────
+    # MARCA SELECIONADA
+    # ──────────────────────────────────────────────────────────
+
     elif dados.startswith("marca_"):
+
         marca = dados.replace("marca_", "")
+
         link = CATALOGO["parafusadeira"]["marcas"][marca]
 
+
         await query.edit_message_text(
+
             f"✅ EXCELENTE ESCOLHA!\n\n"
+
             f"🔹 PRODUTO: PARAFUSADEIRA\n"
             f"🔹 MARCA: {marca}\n\n"
+
             "Acesse agora e confira os melhores preços:",
+
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton(
-                    f"🛒 VER {marca} NO MERCADO LIVRE",
-                    url=link
-                )],
-                [InlineKeyboardButton(
-                    "⬅️ VOLTAR ÀS MARCAS",
-                    callback_data="lista_parafusadeira"
-                )]
+
+                [
+                    InlineKeyboardButton(
+                        f"🛒 VER {marca} NO MERCADO LIVRE",
+                        url=link,
+                        style="success"
+                    )
+                ],
+
+                [
+                    InlineKeyboardButton(
+                        "⬅️ VOLTAR ÀS MARCAS",
+                        callback_data="lista_parafusadeira",
+                        style="danger"
+                    )
+                ]
+
             ])
         )
 
+
 # ══════════════════════════════════════════════════════════════
-#                    INICIALIZAÇÃO
+#                       INICIALIZAÇÃO
 # ══════════════════════════════════════════════════════════════
+
 def main():
+
     app = Application.builder().token(TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(acao_botao))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, mensagem_rodape))
+
+    app.add_handler(
+        CommandHandler("start", start)
+    )
+
+
+    app.add_handler(
+        CallbackQueryHandler(acao_botao)
+    )
+
+
+    app.add_handler(
+        MessageHandler(
+            filters.TEXT & ~filters.COMMAND,
+            mensagem_rodape
+        )
+    )
+
 
     logger.info("=" * 60)
-    logger.info("🐠 MARLIN DAS OFERTAS — RODAPÉ AJUSTADO!")
-    logger.info("✅ Rodapé limpo: Início | Ferramentas | Sobre Nós")
-    logger.info("✅ Parafusadeira dentro de Ferramentas")
+
+    logger.info(
+        "🐠 MARLIN DAS OFERTAS — BOTÕES COLORIDOS!"
+    )
+
+    logger.info(
+        "✅ Rodapé persistente"
+    )
+
+    logger.info(
+        "✅ Botões Inline com estilos Primary / Success / Danger"
+    )
+
+    logger.info(
+        "✅ Parafusadeiras dentro de Ferramentas"
+    )
+
     logger.info("=" * 60)
 
-    app.run_polling(drop_pending_updates=True)
+
+    app.run_polling(
+        drop_pending_updates=True
+    )
+
+
+# ══════════════════════════════════════════════════════════════
+#                         EXECUTAR
+# ══════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     main()
