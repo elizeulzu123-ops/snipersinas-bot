@@ -23,9 +23,9 @@ from telegram.ext import (
 )
 
 
-# ══════════════════════════════════════════════════════════════
-#                    CONFIGURAÇÕES
-# ══════════════════════════════════════════════════════════════
+# ============================================================
+# CONFIGURAÇÃO
+# ============================================================
 
 load_dotenv()
 
@@ -35,6 +35,10 @@ if not TOKEN:
     raise SystemExit("❌ Verifique o TOKEN no .env!")
 
 
+# ============================================================
+# LOG
+# ============================================================
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s — %(message)s"
@@ -42,12 +46,17 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-IMAGEM_URL = "https://picsum.photos/id/175/800/500"
+
+# ============================================================
+# IMAGEM DE BOAS-VINDAS
+# ============================================================
+
+IMAGEM_URL = "https://i.ibb.co/JRvr5XjN/file-00000000e2f4820e905136c406931929.png"
 
 
-# ══════════════════════════════════════════════════════════════
-#                         CATÁLOGO
-# ══════════════════════════════════════════════════════════════
+# ============================================================
+# CATÁLOGO
+# ============================================================
 
 CATALOGO = {
     "parafusadeira": {
@@ -55,7 +64,7 @@ CATALOGO = {
         "nome": "PARAFUSADEIRA",
 
         "marcas": {
-            "BOSCH":        "https://meli.la/1GtWTRG",
+            "BOSCH":        "https://meli.la/1GtWTR",
             "MAKITA":       "https://meli.la/1MjEzBC",
             "DEWALT":       "https://meli.la/1Lj62wM",
             "BLACK+DECKER": "https://meli.la/2cg9Ew4",
@@ -68,9 +77,9 @@ CATALOGO = {
 }
 
 
-# ══════════════════════════════════════════════════════════════
-#                    RODAPÉ FIXO
-# ══════════════════════════════════════════════════════════════
+# ============================================================
+# TECLADO FIXO DO RODAPÉ
+# ============================================================
 
 def teclado_rodape() -> ReplyKeyboardMarkup:
 
@@ -79,6 +88,7 @@ def teclado_rodape() -> ReplyKeyboardMarkup:
             ["🔴 INÍCIO", "🔵 FERRAMENTAS"],
             ["📋 SOBRE NÓS"]
         ],
+
         resize_keyboard=True,
         one_time_keyboard=False,
         is_persistent=True,
@@ -86,9 +96,9 @@ def teclado_rodape() -> ReplyKeyboardMarkup:
     )
 
 
-# ══════════════════════════════════════════════════════════════
-#                    BOTÕES DAS MARCAS
-# ══════════════════════════════════════════════════════════════
+# ============================================================
+# MENU DE MARCAS
+# ============================================================
 
 def teclado_marcas() -> InlineKeyboardMarkup:
 
@@ -100,6 +110,7 @@ def teclado_marcas() -> InlineKeyboardMarkup:
                 callback_data="marca_BOSCH",
                 style="primary"
             ),
+
             InlineKeyboardButton(
                 "MAKITA",
                 callback_data="marca_MAKITA",
@@ -113,6 +124,7 @@ def teclado_marcas() -> InlineKeyboardMarkup:
                 callback_data="marca_DEWALT",
                 style="primary"
             ),
+
             InlineKeyboardButton(
                 "BLACK+DECKER",
                 callback_data="marca_BLACK+DECKER",
@@ -126,6 +138,7 @@ def teclado_marcas() -> InlineKeyboardMarkup:
                 callback_data="marca_STANLEY",
                 style="primary"
             ),
+
             InlineKeyboardButton(
                 "MONDIAL",
                 callback_data="marca_MONDIAL",
@@ -139,6 +152,7 @@ def teclado_marcas() -> InlineKeyboardMarkup:
                 callback_data="marca_PHILCO",
                 style="primary"
             ),
+
             InlineKeyboardButton(
                 "VONDER",
                 callback_data="marca_VONDER",
@@ -153,13 +167,12 @@ def teclado_marcas() -> InlineKeyboardMarkup:
                 style="danger"
             )
         ]
-
     ])
 
 
-# ══════════════════════════════════════════════════════════════
-#                       BOAS-VINDAS
-# ══════════════════════════════════════════════════════════════
+# ============================================================
+# /START — MENSAGEM DE BOAS-VINDAS
+# ============================================================
 
 async def start(
     update: Update,
@@ -167,6 +180,7 @@ async def start(
 ):
 
     user = update.effective_user
+
     nome = user.first_name or "amigo"
 
     await context.bot.send_photo(
@@ -176,14 +190,21 @@ async def start(
         photo=IMAGEM_URL,
 
         caption=(
-            f"🐠 OLÁ, {nome.upper()}! SEJA MUITO BEM-VINDO!\n\n"
 
-            "Eu sou o MARLIN DAS OFERTAS!\n"
+            f"🐠 OLÁ, {nome.upper()}! "
+            "SEJA MUITO BEM-VINDO!\n\n"
+
+            "🔧 EU SOU O MARLIN DAS OFERTAS!\n\n"
+
             "Seu parceiro de confiança nas melhores "
             "oportunidades do Mercado Livre! 💎\n\n"
 
             "Aqui você encontra as melhores marcas, "
-            "os melhores preços e sempre com segurança! 💰\n\n"
+            "os melhores preços e produtos de qualidade! 💰\n\n"
+
+            "🛠️ FERRAMENTAS\n"
+            "🔩 PARAFUSADEIRAS\n"
+            "⭐ GRANDES MARCAS\n\n"
 
             "👇 Escolha uma opção abaixo e vamos lá!"
         ),
@@ -192,9 +213,9 @@ async def start(
     )
 
 
-# ══════════════════════════════════════════════════════════════
-#                  BOTÕES DO RODAPÉ
-# ══════════════════════════════════════════════════════════════
+# ============================================================
+# BOTÕES DO RODAPÉ
+# ============================================================
 
 async def mensagem_rodape(
     update: Update,
@@ -204,18 +225,18 @@ async def mensagem_rodape(
     texto = update.message.text.strip()
 
 
-    # ──────────────────────────────────────────────────────────
+    # --------------------------------------------------------
     # INÍCIO
-    # ──────────────────────────────────────────────────────────
+    # --------------------------------------------------------
 
     if texto == "🔴 INÍCIO":
 
         await start(update, context)
 
 
-    # ──────────────────────────────────────────────────────────
+    # --------------------------------------------------------
     # FERRAMENTAS
-    # ──────────────────────────────────────────────────────────
+    # --------------------------------------------------------
 
     elif texto == "🔵 FERRAMENTAS":
 
@@ -246,9 +267,9 @@ async def mensagem_rodape(
         )
 
 
-    # ──────────────────────────────────────────────────────────
+    # --------------------------------------------------------
     # SOBRE NÓS
-    # ──────────────────────────────────────────────────────────
+    # --------------------------------------------------------
 
     elif texto == "📋 SOBRE NÓS":
 
@@ -270,9 +291,9 @@ async def mensagem_rodape(
         )
 
 
-# ══════════════════════════════════════════════════════════════
-#                  CLIQUES NOS BOTÕES
-# ══════════════════════════════════════════════════════════════
+# ============================================================
+# AÇÕES DOS BOTÕES INLINE
+# ============================================================
 
 async def acao_botao(
     update: Update,
@@ -286,18 +307,18 @@ async def acao_botao(
     dados = query.data
 
 
-    # ──────────────────────────────────────────────────────────
-    # VOLTAR AO INÍCIO
-    # ──────────────────────────────────────────────────────────
+    # --------------------------------------------------------
+    # VOLTAR AO MENU INICIAL
+    # --------------------------------------------------------
 
     if dados == "menu_inicial":
 
         await start(update, context)
 
 
-    # ──────────────────────────────────────────────────────────
+    # --------------------------------------------------------
     # LISTA DE PARAFUSADEIRAS
-    # ──────────────────────────────────────────────────────────
+    # --------------------------------------------------------
 
     elif dados == "lista_parafusadeira":
 
@@ -311,9 +332,9 @@ async def acao_botao(
         )
 
 
-    # ──────────────────────────────────────────────────────────
+    # --------------------------------------------------------
     # MARCA SELECIONADA
-    # ──────────────────────────────────────────────────────────
+    # --------------------------------------------------------
 
     elif dados.startswith("marca_"):
 
@@ -329,7 +350,7 @@ async def acao_botao(
             f"🔹 PRODUTO: PARAFUSADEIRA\n"
             f"🔹 MARCA: {marca}\n\n"
 
-            "Acesse agora e confira os melhores preços:",
+            "🛒 Acesse agora e confira os melhores preços:",
 
             reply_markup=InlineKeyboardMarkup([
 
@@ -353,25 +374,33 @@ async def acao_botao(
         )
 
 
-# ══════════════════════════════════════════════════════════════
-#                       INICIALIZAÇÃO
-# ══════════════════════════════════════════════════════════════
+# ============================================================
+# INICIALIZAÇÃO
+# ============================================================
 
 def main():
 
     app = Application.builder().token(TOKEN).build()
 
 
+    # /start
     app.add_handler(
-        CommandHandler("start", start)
+        CommandHandler(
+            "start",
+            start
+        )
     )
 
 
+    # Botões inline
     app.add_handler(
-        CallbackQueryHandler(acao_botao)
+        CallbackQueryHandler(
+            acao_botao
+        )
     )
 
 
+    # Botões do rodapé
     app.add_handler(
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,
@@ -384,6 +413,14 @@ def main():
 
     logger.info(
         "🐠 MARLIN DAS OFERTAS — BOTÕES AZUIS!"
+    )
+
+    logger.info(
+        "✅ Nova imagem de ferramentas configurada"
+    )
+
+    logger.info(
+        "✅ Imagem aparece na mensagem de boas-vindas"
     )
 
     logger.info(
@@ -405,14 +442,15 @@ def main():
     logger.info("=" * 60)
 
 
+    # Inicia o bot
     app.run_polling(
         drop_pending_updates=True
     )
 
 
-# ══════════════════════════════════════════════════════════════
-#                         EXECUTAR
-# ══════════════════════════════════════════════════════════════
+# ============================================================
+# EXECUTAR
+# ============================================================
 
 if __name__ == "__main__":
     main()
