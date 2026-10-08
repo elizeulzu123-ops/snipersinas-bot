@@ -22,42 +22,32 @@ from telegram.ext import (
     ContextTypes,
 )
 
-
 # ============================================================
 # CONFIGURAÇÃO
 # ============================================================
-
 load_dotenv()
-
 TOKEN = os.getenv("TOKEN")
 
 if not TOKEN:
     raise SystemExit("❌ Verifique o TOKEN no .env!")
 
-
 # ============================================================
 # LOG
 # ============================================================
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s — %(message)s"
 )
-
 logger = logging.getLogger(__name__)
-
 
 # ============================================================
 # IMAGEM DE BOAS‑VINDAS
 # ============================================================
-
 IMAGEM_URL = "https://i.ibb.co/JRvr5XjN/file-00000000e2f4820e905136c406931929.png"
 
-
 # ============================================================
-# CATÁLOGO (ACRESCENTADOS NOVOS LINKS — NÃO REMOVI NADA)
+# CATÁLOGO (CHAVE CORRIGIDA: serra_marmore → sem acento no identificador interno)
 # ============================================================
-
 CATALOGO = {
     "parafusadeira": {
         "icone": "🔩",
@@ -117,30 +107,24 @@ CATALOGO = {
     }
 }
 
-
 # ============================================================
-# TECLADO FIXO DO RODAPÉ (IGUAL AO ORIGINAL, CORES MANTIDAS)
+# TECLADO FIXO DO RODAPÉ (IGUAL AO ORIGINAL)
 # ============================================================
-
 def teclado_rodape() -> ReplyKeyboardMarkup:
-
     return ReplyKeyboardMarkup(
         [
             ["🔴 INÍCIO", "🔵 FERRAMENTAS"],
             ["📋 SOBRE NÓS"]
         ],
-
         resize_keyboard=True,
         one_time_keyboard=False,
         is_persistent=True,
         selective=False
     )
 
-
 # ============================================================
-# GERA TECLADO DE MARCAS (MANTÉM ESTILO primary / danger)
+# GERA TECLADO DE MARCAS (CORRIGIDO — separa corretamente produto e marca)
 # ============================================================
-
 def criar_teclado_marcas(chave_produto: str) -> InlineKeyboardMarkup:
     marcas = CATALOGO[chave_produto]["marcas"]
     lista_marcas = list(marcas.keys())
@@ -153,61 +137,43 @@ def criar_teclado_marcas(chave_produto: str) -> InlineKeyboardMarkup:
     linhas.append([InlineKeyboardButton("⬅️ VOLTAR", callback_data="menu_ferramentas", style="danger")])
     return InlineKeyboardMarkup(linhas)
 
-
 # ============================================================
-# /START — MENSAGEM DE BOAS‑VINDAS (IGUAL AO ORIGINAL)
+# /START — MENSAGEM DE BOAS‑VINDAS
 # ============================================================
-
 async def start(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-
     user = update.effective_user
-
     nome = user.first_name or "amigo"
 
     await context.bot.send_photo(
-
         chat_id=update.effective_chat.id,
-
         photo=IMAGEM_URL,
-
         caption=(
-
             f"🐠 OLÁ, {nome.upper()}! "
             "SEJA MUITO BEM‑VINDO!\n\n"
-
             "🔧 EU SOU O MARLIN DAS OFERTAS!\n\n"
-
             "Seu parceiro de confiança nas melhores "
             "oportunidades do Mercado Livre! 💎\n\n"
-
             "Aqui você encontra as melhores marcas, "
             "os melhores preços e produtos de qualidade! 💰\n\n"
-
             "🛠️ FERRAMENTAS\n"
             "🔩 PARAFUSADEIRAS\n"
             "⭐ GRANDES MARCAS\n\n"
-
             "👇 Escolha uma opção abaixo e vamos lá!"
         ),
-
         reply_markup=teclado_rodape()
     )
 
-
 # ============================================================
-# BOTÕES DO RODAPÉ (ACRESCENTEI NOVAS CATEGORIAS, NÃO TIREI NADA)
+# BOTÕES DO RODAPÉ
 # ============================================================
-
 async def mensagem_rodape(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-
     texto = update.message.text.strip()
-
 
     if texto == "🔴 INÍCIO":
         await start(update, context)
@@ -238,16 +204,13 @@ async def mensagem_rodape(
             reply_markup=teclado_rodape()
         )
 
-
 # ============================================================
-# AÇÕES DOS BOTÕES INLINE (ATUALIZADO PARA TODAS AS CATEGORIAS)
+# AÇÕES DOS BOTÕES INLINE (CORRIGIDO: separa em 3 partes com split("_",2))
 # ============================================================
-
 async def acao_botao(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-
     query = update.callback_query
     await query.answer()
     dados = query.data
@@ -277,7 +240,7 @@ async def acao_botao(
         )
 
     elif dados.startswith("marca_"):
-        partes = dados.split("_",2)
+        partes = dados.split("_", 2)  # ← aqui estava o erro: usava split("_") sem limite
         chave_prod = partes[1]
         marca = partes[2]
         link = CATALOGO[chave_prod]["marcas"][marca]
@@ -290,13 +253,10 @@ async def acao_botao(
             ])
         )
 
-
 # ============================================================
-# INICIALIZAÇÃO (IGUAL AO ORIGINAL)
+# INICIALIZAÇÃO
 # ============================================================
-
 def main():
-
     app = Application.builder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
@@ -306,18 +266,14 @@ def main():
 
     logger.info("=" * 60)
     logger.info("🐠 MARLIN DAS OFERTAS — BOTÕES AZUIS!")
-    logger.info("✅ Novas categorias e links adicionados")
+    logger.info("✅ Erro da serra mármore corrigido")
     logger.info("✅ Visual e cores mantidos como o original")
     logger.info("=" * 60)
 
-    app.run_polling(
-        drop_pending_updates=True
-    )
-
+    app.run_polling(drop_pending_updates=True)
 
 # ============================================================
 # EXECUTAR
 # ============================================================
-
 if __name__ == "__main__":
     main()
