@@ -55,13 +55,13 @@ IMAGEM_URL = "https://i.ibb.co/JRvr5XjN/file-00000000e2f4820e905136c406931929.pn
 
 
 # ============================================================
-# CATÁLOGO COMPLETO
+# CATÁLOGO DE FERRAMENTAS E MARCAS
 # ============================================================
 
 CATALOGO = {
     "parafusadeira": {
         "icone": "🔋",
-        "nome": "PARAFUSADEIRAS",
+        "nome": "PARAFUSADEIRA",
         "marcas": {
             "BOSCH": "https://meli.la/1GtWTR",
             "MAKITA": "https://meli.la/1MjEzBC",
@@ -75,7 +75,7 @@ CATALOGO = {
     },
     "serra_marmore": {
         "icone": "🔧",
-        "nome": "SERRAS MÁRMORE",
+        "nome": "SERRA MÁRMORE",
         "marcas": {
             "BOSCH": "https://meli.la/16m4wJn",
             "DEWALT": "https://meli.la/1peLUGn",
@@ -90,7 +90,7 @@ CATALOGO = {
     },
     "furadeira": {
         "icone": "⚡",
-        "nome": "FURADEIRAS",
+        "nome": "FURADEIRA",
         "marcas": {
             "BOSCH": "https://meli.la/1rTGEXr",
             "MAKITA": "https://meli.la/1C5PnoK",
@@ -106,7 +106,7 @@ CATALOGO = {
     },
     "martelete": {
         "icone": "🔨",
-        "nome": "MARTELETES",
+        "nome": "MARTELETE",
         "marcas": {
             "HILTI": "https://meli.la/2qtyLZL",
             "BOSCH": "https://meli.la/1qtahqS",
@@ -122,7 +122,7 @@ CATALOGO = {
     },
     "esmerilhadeira": {
         "icone": "⚙️",
-        "nome": "ESMERILHADEIRAS",
+        "nome": "ESMERILHADEIRA",
         "marcas": {
             "MAKITA": "https://meli.la/199YrBZ",
             "BOSCH": "https://meli.la/1x2FruA",
@@ -138,7 +138,7 @@ CATALOGO = {
     },
     "lixadeira": {
         "icone": "🧰",
-        "nome": "LIXADEIRAS / POLRIZES",
+        "nome": "LIXADEIRA / POLRIZ",
         "marcas": {
             "MAKITA": "https://meli.la/1RyDQiu",
             "BOSCH": "https://meli.la/2pJTf1t",
@@ -154,7 +154,7 @@ CATALOGO = {
     },
     "solda": {
         "icone": "🔥",
-        "nome": "MÁQUINAS DE SOLDA",
+        "nome": "MÁQUINA DE SOLDA",
         "marcas": {
             "ESAB": "https://meli.la/2xSkHub",
             "BOXER": "https://meli.la/18cXM24",
@@ -189,55 +189,21 @@ def teclado_rodape() -> ReplyKeyboardMarkup:
 
 
 # ============================================================
-# MENU DE CATEGORIAS DE FERRAMENTAS
+# FUNÇÃO AUXILIAR PARA CRIAR TECLADOS DE MARCAS DINAMICAMENTE
 # ============================================================
 
-def teclado_categorias() -> InlineKeyboardMarkup:
-    botoes = []
-    for chave, info in CATALOGO.items():
-        botoes.append([
-            InlineKeyboardButton(
-                f"{info['icone']} {info['nome']}",
-                callback_data=f"cat_{chave}"
-            )
-        ])
-    
-    botoes.append([
-        InlineKeyboardButton("◀️ VOLTAR AO INÍCIO", callback_data="menu_inicial")
-    ])
-    
-    return InlineKeyboardMarkup(botoes)
-
-
-# ============================================================
-# MENU DE MARCAS DINÂMICO
-# ============================================================
-
-def teclado_marcas(categoria: str) -> InlineKeyboardMarkup:
-    marcas = CATALOGO[categoria]["marcas"]
-    lista_chaves = list(marcas.keys())
+def criar_teclado_marcas(produto_chave: str) -> InlineKeyboardMarkup:
+    marcas = CATALOGO[produto_chave]["marcas"]
+    chaves = list(marcas.keys())
     
     botoes = []
-    for i in range(0, len(lista_chaves), 2):
-        linha = [
-            InlineKeyboardButton(
-                lista_chaves[i],
-                callback_data=f"marca_{categoria}_{lista_chaves[i]}"
-            )
-        ]
-        if i + 1 < len(lista_chaves):
-            linha.append(
-                InlineKeyboardButton(
-                    lista_chaves[i+1],
-                    callback_data=f"marca_{categoria}_{lista_chaves[i+1]}"
-                )
-            )
+    for i in range(0, len(chaves), 2):
+        linha = [InlineKeyboardButton(chaves[i], callback_data=f"marca_{produto_chave}_{chaves[i]}")]
+        if i + 1 < len(chaves):
+            linha.append(InlineKeyboardButton(chaves[i+1], callback_data=f"marca_{produto_chave}_{chaves[i+1]}"))
         botoes.append(linha)
     
-    botoes.append([
-        InlineKeyboardButton("◀️ VOLTAR ÀS CATEGORIAS", callback_data="lista_categorias")
-    ])
-    
+    botoes.append([InlineKeyboardButton("◀️ VOLTAR ÀS FERRAMENTAS", callback_data="menu_ferramentas")])
     return InlineKeyboardMarkup(botoes)
 
 
@@ -285,10 +251,20 @@ async def mensagem_rodape(
         await iniciar(update, context)
 
     elif texto == "🔵 FERRAMENTAS":
+        # Menu de escolha principal de ferramentas
         await update.message.reply_text(
             "🛠️ FERRAMENTAS\n\n"
-            "Escolha a categoria que você está procurando:",
-            reply_markup=teclado_categorias()
+            "Escolha o que você está procurando:",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔋 PARAFUSADEIRAS", callback_data="lista_parafusadeira")],
+                [InlineKeyboardButton("🔧 SERRAS MÁRMORE", callback_data="lista_serra_marmore")],
+                [InlineKeyboardButton("⚡ FURADEIRAS", callback_data="lista_furadeira")],
+                [InlineKeyboardButton("🔨 MARTELETES", callback_data="lista_martelete")],
+                [InlineKeyboardButton("⚙️ ESMERILHADEIRAS", callback_data="lista_esmerilhadeira")],
+                [InlineKeyboardButton("🧰 LIXADEIRAS / POLRIZES", callback_data="lista_lixadeira")],
+                [InlineKeyboardButton("🔥 MÁQUINAS DE SOLDA", callback_data="lista_solda")],
+                [InlineKeyboardButton("◀️ VOLTAR AO INÍCIO", callback_data="menu_inicial")]
+            ])
         )
 
     elif texto == "📋 SOBRE NÓS":
@@ -321,34 +297,43 @@ async def acao_botao(
         await query.message.delete()
         await iniciar(update, context)
 
-    elif dados == "lista_categorias":
+    elif dados == "menu_ferramentas":
         await query.edit_message_text(
             "🛠️ FERRAMENTAS\n\n"
-            "Escolha a categoria que você está procurando:",
-            reply_markup=teclado_categorias()
+            "Escolha o que você está procurando:",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔋 PARAFUSADEIRAS", callback_data="lista_parafusadeira")],
+                [InlineKeyboardButton("🔧 SERRAS MÁRMORE", callback_data="lista_serra_marmore")],
+                [InlineKeyboardButton("⚡ FURADEIRAS", callback_data="lista_furadeira")],
+                [InlineKeyboardButton("🔨 MARTELETES", callback_data="lista_martelete")],
+                [InlineKeyboardButton("⚙️ ESMERILHADEIRAS", callback_data="lista_esmerilhadeira")],
+                [InlineKeyboardButton("🧰 LIXADEIRAS / POLRIZES", callback_data="lista_lixadeira")],
+                [InlineKeyboardButton("🔥 MÁQUINAS DE SOLDA", callback_data="lista_solda")],
+                [InlineKeyboardButton("◀️ VOLTAR AO INÍCIO", callback_data="menu_inicial")]
+            ])
         )
 
-    elif dados.startswith("cat_"):
-        categoria = dados.replace("cat_", "")
-        info_cat = CATALOGO[categoria]
+    elif dados.startswith("lista_"):
+        produto_chave = dados.replace("lista_", "")
+        info = CATALOGO[produto_chave]
 
         await query.edit_message_text(
-            f"{info_cat['icone']} {info_cat['nome']} — ESCOLHA A MARCA!\n\n"
+            f"{info['icone']} {info['nome']} — ESCOLHA A MARCA!\n\n"
             "Clique na marca para ver as ofertas disponíveis! 🎯",
-            reply_markup=teclado_marcas(categoria)
+            reply_markup=criar_teclado_marcas(produto_chave)
         )
 
     elif dados.startswith("marca_"):
         partes = dados.split("_", 2)
-        categoria = partes[1]
+        produto_chave = partes[1]
         marca = partes[2]
 
-        link = CATALOGO[categoria]["marcas"][marca]
-        info_cat = CATALOGO[categoria]
+        link = CATALOGO[produto_chave]["marcas"][marca]
+        info = CATALOGO[produto_chave]
 
         await query.edit_message_text(
             f"✅ EXCELENTE ESCOLHA!\n\n"
-            f"🔹 CATEGORIA: {info_cat['nome']}\n"
+            f"🔹 PRODUTO: {info['nome']}\n"
             f"🔹 MARCA: {marca}\n\n"
             "🛍️ Acesse agora e confira os melhores preços:",
             reply_markup=InlineKeyboardMarkup([
@@ -361,7 +346,7 @@ async def acao_botao(
                 [
                     InlineKeyboardButton(
                         "◀️ VOLTAR ÀS MARCAS",
-                        callback_data=f"cat_{categoria}"
+                        callback_data=f"lista_{produto_chave}"
                     )
                 ]
             ])
@@ -381,7 +366,7 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, mensagem_rodape))
 
     logger.info("=" * 60)
-    logger.info("🔥 MARLIN DAS OFERTAS — TUDO PRONTO E ATUALIZADO!")
+    logger.info("🔥 MARLIN DAS OFERTAS — TUDO FUNCIONANDO!")
     logger.info("=" * 60)
 
     app.run_polling(drop_pending_updates=True)
