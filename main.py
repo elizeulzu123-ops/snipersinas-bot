@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 IMAGEM_URL = "https://i.ibb.co/JRvr5XjN/file-00000000e2f4820e905136c406931929.png"
 
 # ============================================================
-# CATÁLOGO (CHAVE CORRIGIDA: serra_marmore → sem acento no identificador interno)
+# CATÁLOGO (CHAVE INTERNA CORRIGIDA PARA EVITAR CONFUSÃO)
 # ============================================================
 CATALOGO = {
     "parafusadeira": {
@@ -75,7 +75,7 @@ CATALOGO = {
             "STANLEY":      "https://meli.la/1UgDjh9",
         }
     },
-    "serra_marmore": {
+    "serramarmore": {  # ← sem underline no meio para não dar conflito
         "icone": "🔧",
         "nome": "SERRA MÁRMORE",
         "marcas": {
@@ -123,7 +123,7 @@ def teclado_rodape() -> ReplyKeyboardMarkup:
     )
 
 # ============================================================
-# GERA TECLADO DE MARCAS (CORRIGIDO — separa corretamente produto e marca)
+# GERA TECLADO DE MARCAS
 # ============================================================
 def criar_teclado_marcas(chave_produto: str) -> InlineKeyboardMarkup:
     marcas = CATALOGO[chave_produto]["marcas"]
@@ -167,7 +167,7 @@ async def start(
     )
 
 # ============================================================
-# BOTÕES DO RODAPÉ
+# BOTÕES DO RODAPÉ (ATUALIZADO PARA serramarmore)
 # ============================================================
 async def mensagem_rodape(
     update: Update,
@@ -184,7 +184,7 @@ async def mensagem_rodape(
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("🔩 PARAFUSADEIRAS", callback_data="lista_parafusadeira", style="primary")],
                 [InlineKeyboardButton("⚡ FURADEIRAS", callback_data="lista_furadeira", style="primary")],
-                [InlineKeyboardButton("🔧 SERRAS MÁRMORE", callback_data="lista_serra_marmore", style="primary")],
+                [InlineKeyboardButton("🔧 SERRAS MÁRMORE", callback_data="lista_serramarmore", style="primary")],
                 [InlineKeyboardButton("🔨 MARTELETES", callback_data="lista_martelete", style="primary")],
                 [InlineKeyboardButton("⚙️ ESMERILHADEIRAS", callback_data="lista_esmerilhadeira", style="primary")],
                 [InlineKeyboardButton("⬅️ VOLTAR AO INÍCIO", callback_data="menu_inicial", style="danger")]
@@ -205,7 +205,7 @@ async def mensagem_rodape(
         )
 
 # ============================================================
-# AÇÕES DOS BOTÕES INLINE (CORRIGIDO: separa em 3 partes com split("_",2))
+# AÇÕES DOS BOTÕES INLINE (LEITURA CORRIGIDA)
 # ============================================================
 async def acao_botao(
     update: Update,
@@ -224,7 +224,7 @@ async def acao_botao(
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("🔩 PARAFUSADEIRAS", callback_data="lista_parafusadeira", style="primary")],
                 [InlineKeyboardButton("⚡ FURADEIRAS", callback_data="lista_furadeira", style="primary")],
-                [InlineKeyboardButton("🔧 SERRAS MÁRMORE", callback_data="lista_serra_marmore", style="primary")],
+                [InlineKeyboardButton("🔧 SERRAS MÁRMORE", callback_data="lista_serramarmore", style="primary")],
                 [InlineKeyboardButton("🔨 MARTELETES", callback_data="lista_martelete", style="primary")],
                 [InlineKeyboardButton("⚙️ ESMERILHADEIRAS", callback_data="lista_esmerilhadeira", style="primary")],
                 [InlineKeyboardButton("⬅️ VOLTAR AO INÍCIO", callback_data="menu_inicial", style="danger")]
@@ -240,7 +240,7 @@ async def acao_botao(
         )
 
     elif dados.startswith("marca_"):
-        partes = dados.split("_", 2)  # ← aqui estava o erro: usava split("_") sem limite
+        partes = dados.split("_", 2)
         chave_prod = partes[1]
         marca = partes[2]
         link = CATALOGO[chave_prod]["marcas"][marca]
@@ -265,9 +265,8 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, mensagem_rodape))
 
     logger.info("=" * 60)
-    logger.info("🐠 MARLIN DAS OFERTAS — BOTÕES AZUIS!")
-    logger.info("✅ Erro da serra mármore corrigido")
-    logger.info("✅ Visual e cores mantidos como o original")
+    logger.info("🐠 MARLIN DAS OFERTAS — ERRO DA SERRA MÁRMORE CORRIGIDO!")
+    logger.info("✅ Visual e cores mantidos")
     logger.info("=" * 60)
 
     app.run_polling(drop_pending_updates=True)
