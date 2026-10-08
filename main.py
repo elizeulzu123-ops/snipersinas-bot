@@ -251,7 +251,6 @@ async def mensagem_rodape(
         await iniciar(update, context)
 
     elif texto == "🔵 FERRAMENTAS":
-        # Menu de escolha principal de ferramentas
         await update.message.reply_text(
             "🛠️ FERRAMENTAS\n\n"
             "Escolha o que você está procurando:",
