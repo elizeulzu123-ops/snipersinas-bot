@@ -36,7 +36,7 @@ if not TOKEN:
 
 
 # ============================================================
-# LOG
+# REGISTRO
 # ============================================================
 
 logging.basicConfig(
@@ -55,23 +55,117 @@ IMAGEM_URL = "https://i.ibb.co/JRvr5XjN/file-00000000e2f4820e905136c406931929.pn
 
 
 # ============================================================
-# CATÁLOGO
+# CATÁLOGO COMPLETO
 # ============================================================
 
 CATALOGO = {
     "parafusadeira": {
-        "icone": "🔩",
-        "nome": "PARAFUSADEIRA",
-
+        "icone": "🔋",
+        "nome": "PARAFUSADEIRAS",
         "marcas": {
-            "BOSCH":        "https://meli.la/1GtWTR",
-            "MAKITA":       "https://meli.la/1MjEzBC",
-            "DEWALT":       "https://meli.la/1Lj62wM",
+            "BOSCH": "https://meli.la/1GtWTR",
+            "MAKITA": "https://meli.la/1MjEzBC",
+            "DEWALT": "https://meli.la/1Lj62wM",
             "BLACK+DECKER": "https://meli.la/2cg9Ew4",
-            "STANLEY":      "https://meli.la/2YoHTgT",
-            "MONDIAL":      "https://meli.la/2yH2xvM",
-            "PHILCO":       "https://meli.la/29EsFhi",
-            "VONDER":       "https://meli.la/1NwzU1H",
+            "STANLEY": "https://meli.la/2YoHTgT",
+            "MONDIAL": "https://meli.la/2yH2xvM",
+            "PHILCO": "https://meli.la/29EsFhi",
+            "VONDER": "https://meli.la/1NwzU1H",
+        }
+    },
+    "serra_marmore": {
+        "icone": "🔧",
+        "nome": "SERRAS MÁRMORE",
+        "marcas": {
+            "BOSCH": "https://meli.la/16m4wJn",
+            "DEWALT": "https://meli.la/1peLUGn",
+            "SKIL": "https://meli.la/2kcR4T3",
+            "VONDER": "https://meli.la/2Hdyim9",
+            "BLACK+DECKER": "https://meli.la/1ptasFd",
+            "WESCO": "https://meli.la/1xKyWMe",
+            "STANLEY": "https://meli.la/2tANx4w",
+            "DWT": "https://meli.la/1ppmtmE",
+            "GAMMA": "https://meli.la/1PA6MUR",
+        }
+    },
+    "furadeira": {
+        "icone": "⚡",
+        "nome": "FURADEIRAS",
+        "marcas": {
+            "BOSCH": "https://meli.la/1rTGEXr",
+            "MAKITA": "https://meli.la/1C5PnoK",
+            "DEWALT": "https://meli.la/2VeMEBq",
+            "BLACK+DECKER": "https://meli.la/24oNzgo",
+            "VONDER": "https://meli.la/1KAXyAj",
+            "STANLEY": "https://meli.la/1UgDjh9",
+            "SKIL": "https://meli.la/1dzZZBC",
+            "WAP": "https://meli.la/2pxhPin",
+            "WESCO": "https://meli.la/2pD7sRo",
+            "MONDIAL": "https://meli.la/1NqpXkj",
+        }
+    },
+    "martelete": {
+        "icone": "🔨",
+        "nome": "MARTELETES",
+        "marcas": {
+            "HILTI": "https://meli.la/2qtyLZL",
+            "BOSCH": "https://meli.la/1qtahqS",
+            "MAKITA": "https://meli.la/2jUiZos",
+            "DEWALT": "https://meli.la/1ddicJ8",
+            "MILWAUKEE": "https://meli.la/26bQfyA",
+            "STANLEY": "https://meli.la/1Ksyh9W",
+            "VONDER": "https://meli.la/2TAS8Tr",
+            "WESCO": "https://meli.la/2mN7fae",
+            "DWT": "https://meli.la/2ZQj5dw",
+            "GAMMA": "https://meli.la/1vxe1wi",
+        }
+    },
+    "esmerilhadeira": {
+        "icone": "⚙️",
+        "nome": "ESMERILHADEIRAS",
+        "marcas": {
+            "MAKITA": "https://meli.la/199YrBZ",
+            "BOSCH": "https://meli.la/1x2FruA",
+            "DEWALT": "https://meli.la/1LazRn9",
+            "MILWAUKEE": "https://meli.la/1nbm7VS",
+            "BLACK+DECKER": "https://meli.la/2XW84cb",
+            "VONDER": "https://meli.la/1cNSVjo",
+            "WAP": "https://meli.la/22RRtDo",
+            "STANLEY": "https://meli.la/2Jgiy9E",
+            "SKIL": "https://meli.la/2jsbzwK",
+            "WESCO": "https://meli.la/2FyXWD9",
+        }
+    },
+    "lixadeira": {
+        "icone": "🧰",
+        "nome": "LIXADEIRAS / POLRIZES",
+        "marcas": {
+            "MAKITA": "https://meli.la/1RyDQiu",
+            "BOSCH": "https://meli.la/2pJTf1t",
+            "DEWALT": "https://meli.la/2M1y9GP",
+            "SKIL": "https://meli.la/1iS9Wst",
+            "BLACK+DECKER": "https://meli.la/1tCG9cc",
+            "VONDER": "https://meli.la/2PXxrKT",
+            "STANLEY": "https://meli.la/1ZjWBQp",
+            "SIGMA TOOLS": "https://meli.la/1UW3jNP",
+            "EINHELL": "https://meli.la/2ZUxoFb",
+            "HAMMER": "https://meli.la/1yGorSj",
+        }
+    },
+    "solda": {
+        "icone": "🔥",
+        "nome": "MÁQUINAS DE SOLDA",
+        "marcas": {
+            "ESAB": "https://meli.la/2xSkHub",
+            "BOXER": "https://meli.la/18cXM24",
+            "VONDER": "https://meli.la/19rHc2y",
+            "BELZER": "https://meli.la/1RmfB9X",
+            "STANLEY": "https://meli.la/2otoL5c",
+            "LYNUS": "https://meli.la/2KQcnqx",
+            "TEKNA": "https://meli.la/21ZwQBT",
+            "TITANIUM": "https://meli.la/1miUfDe",
+            "SUPER TORK": "https://meli.la/2YCDArx",
+            "NAGANO": "https://meli.la/2662847",
         }
     }
 }
@@ -82,13 +176,11 @@ CATALOGO = {
 # ============================================================
 
 def teclado_rodape() -> ReplyKeyboardMarkup:
-
     return ReplyKeyboardMarkup(
         [
             ["🔴 INÍCIO", "🔵 FERRAMENTAS"],
             ["📋 SOBRE NÓS"]
         ],
-
         resize_keyboard=True,
         one_time_keyboard=False,
         is_persistent=True,
@@ -97,118 +189,84 @@ def teclado_rodape() -> ReplyKeyboardMarkup:
 
 
 # ============================================================
-# MENU DE MARCAS
+# MENU DE CATEGORIAS DE FERRAMENTAS
 # ============================================================
 
-def teclado_marcas() -> InlineKeyboardMarkup:
-
-    return InlineKeyboardMarkup([
-
-        [
+def teclado_categorias() -> InlineKeyboardMarkup:
+    botoes = []
+    for chave, info in CATALOGO.items():
+        botoes.append([
             InlineKeyboardButton(
-                "BOSCH",
-                callback_data="marca_BOSCH",
-                style="primary"
-            ),
-
-            InlineKeyboardButton(
-                "MAKITA",
-                callback_data="marca_MAKITA",
-                style="primary"
+                f"{info['icone']} {info['nome']}",
+                callback_data=f"cat_{chave}"
             )
-        ],
+        ])
+    
+    botoes.append([
+        InlineKeyboardButton("◀️ VOLTAR AO INÍCIO", callback_data="menu_inicial")
+    ])
+    
+    return InlineKeyboardMarkup(botoes)
 
-        [
-            InlineKeyboardButton(
-                "DEWALT",
-                callback_data="marca_DEWALT",
-                style="primary"
-            ),
 
-            InlineKeyboardButton(
-                "BLACK+DECKER",
-                callback_data="marca_BLACK+DECKER",
-                style="primary"
-            )
-        ],
+# ============================================================
+# MENU DE MARCAS DINÂMICO
+# ============================================================
 
-        [
+def teclado_marcas(categoria: str) -> InlineKeyboardMarkup:
+    marcas = CATALOGO[categoria]["marcas"]
+    lista_chaves = list(marcas.keys())
+    
+    botoes = []
+    for i in range(0, len(lista_chaves), 2):
+        linha = [
             InlineKeyboardButton(
-                "STANLEY",
-                callback_data="marca_STANLEY",
-                style="primary"
-            ),
-
-            InlineKeyboardButton(
-                "MONDIAL",
-                callback_data="marca_MONDIAL",
-                style="primary"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "PHILCO",
-                callback_data="marca_PHILCO",
-                style="primary"
-            ),
-
-            InlineKeyboardButton(
-                "VONDER",
-                callback_data="marca_VONDER",
-                style="primary"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "⬅️ VOLTAR",
-                callback_data="menu_inicial",
-                style="danger"
+                lista_chaves[i],
+                callback_data=f"marca_{categoria}_{lista_chaves[i]}"
             )
         ]
+        if i + 1 < len(lista_chaves):
+            linha.append(
+                InlineKeyboardButton(
+                    lista_chaves[i+1],
+                    callback_data=f"marca_{categoria}_{lista_chaves[i+1]}"
+                )
+            )
+        botoes.append(linha)
+    
+    botoes.append([
+        InlineKeyboardButton("◀️ VOLTAR ÀS CATEGORIAS", callback_data="lista_categorias")
     ])
+    
+    return InlineKeyboardMarkup(botoes)
 
 
 # ============================================================
 # /START — MENSAGEM DE BOAS-VINDAS
 # ============================================================
 
-async def start(
+async def iniciar(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-
-    user = update.effective_user
-
-    nome = user.first_name or "amigo"
+    usuario = update.effective_user
+    nome = usuario.first_name or "amigo"
 
     await context.bot.send_photo(
-
         chat_id=update.effective_chat.id,
-
         photo=IMAGEM_URL,
-
         caption=(
-
-            f"🐠 OLÁ, {nome.upper()}! "
+            f"👋 OLÁ, {nome.upper()}!\n"
             "SEJA MUITO BEM-VINDO!\n\n"
-
-            "🔧 EU SOU O MARLIN DAS OFERTAS!\n\n"
-
+            "🛠️ EU SOU O MARLIN DAS OFERTAS!\n\n"
             "Seu parceiro de confiança nas melhores "
             "oportunidades do Mercado Livre! 💎\n\n"
-
             "Aqui você encontra as melhores marcas, "
             "os melhores preços e produtos de qualidade! 💰\n\n"
-
-            "🛠️ FERRAMENTAS\n"
-            "🔩 PARAFUSADEIRAS\n"
-            "⭐ GRANDES MARCAS\n\n"
-
+            "🛍️ FERRAMENTAS\n"
+            "🔋 GRANDES MARCAS\n\n"
             "👇 Escolha uma opção abaixo e vamos lá!"
         ),
-
         reply_markup=teclado_rodape()
     )
 
@@ -221,72 +279,28 @@ async def mensagem_rodape(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-
     texto = update.message.text.strip()
 
-
-    # --------------------------------------------------------
-    # INÍCIO
-    # --------------------------------------------------------
-
     if texto == "🔴 INÍCIO":
-
-        await start(update, context)
-
-
-    # --------------------------------------------------------
-    # FERRAMENTAS
-    # --------------------------------------------------------
+        await iniciar(update, context)
 
     elif texto == "🔵 FERRAMENTAS":
-
         await update.message.reply_text(
-
             "🛠️ FERRAMENTAS\n\n"
-            "Escolha o que você está procurando:",
-
-            reply_markup=InlineKeyboardMarkup([
-
-                [
-                    InlineKeyboardButton(
-                        "🔩 PARAFUSADEIRAS",
-                        callback_data="lista_parafusadeira",
-                        style="primary"
-                    )
-                ],
-
-                [
-                    InlineKeyboardButton(
-                        "⬅️ VOLTAR AO INÍCIO",
-                        callback_data="menu_inicial",
-                        style="danger"
-                    )
-                ]
-
-            ])
+            "Escolha a categoria que você está procurando:",
+            reply_markup=teclado_categorias()
         )
 
-
-    # --------------------------------------------------------
-    # SOBRE NÓS
-    # --------------------------------------------------------
-
     elif texto == "📋 SOBRE NÓS":
-
         await update.message.reply_text(
-
             "🔥 QUEM SOMOS NÓS?\n\n"
-
             "Somos o MARLIN DAS OFERTAS — conectando você "
-            "às melhores promoções do Mercado Livre! 🛒\n\n"
-
+            "as melhores promoções do Mercado Livre! 🛍️\n\n"
             "✅ Produtos de qualidade\n"
             "✅ Marcas confiáveis\n"
             "✅ Preços direto da fonte\n"
             "✅ Segurança em cada compra\n\n"
-
             "Escolha uma opção abaixo e comece a economizar! 💸",
-
             reply_markup=teclado_rodape()
         )
 
@@ -299,77 +313,57 @@ async def acao_botao(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-
     query = update.callback_query
-
     await query.answer()
-
     dados = query.data
 
-
-    # --------------------------------------------------------
-    # VOLTAR AO MENU INICIAL
-    # --------------------------------------------------------
-
     if dados == "menu_inicial":
+        await query.message.delete()
+        await iniciar(update, context)
 
-        await start(update, context)
-
-
-    # --------------------------------------------------------
-    # LISTA DE PARAFUSADEIRAS
-    # --------------------------------------------------------
-
-    elif dados == "lista_parafusadeira":
-
+    elif dados == "lista_categorias":
         await query.edit_message_text(
-
-            "🔩 PARAFUSADEIRAS — ESCOLHA A MARCA!\n\n"
-
-            "Clique na marca para ver as ofertas disponíveis! 🎯",
-
-            reply_markup=teclado_marcas()
+            "🛠️ FERRAMENTAS\n\n"
+            "Escolha a categoria que você está procurando:",
+            reply_markup=teclado_categorias()
         )
 
-
-    # --------------------------------------------------------
-    # MARCA SELECIONADA
-    # --------------------------------------------------------
-
-    elif dados.startswith("marca_"):
-
-        marca = dados.replace("marca_", "")
-
-        link = CATALOGO["parafusadeira"]["marcas"][marca]
-
+    elif dados.startswith("cat_"):
+        categoria = dados.replace("cat_", "")
+        info_cat = CATALOGO[categoria]
 
         await query.edit_message_text(
+            f"{info_cat['icone']} {info_cat['nome']} — ESCOLHA A MARCA!\n\n"
+            "Clique na marca para ver as ofertas disponíveis! 🎯",
+            reply_markup=teclado_marcas(categoria)
+        )
 
+    elif dados.startswith("marca_"):
+        partes = dados.split("_", 2)
+        categoria = partes[1]
+        marca = partes[2]
+
+        link = CATALOGO[categoria]["marcas"][marca]
+        info_cat = CATALOGO[categoria]
+
+        await query.edit_message_text(
             f"✅ EXCELENTE ESCOLHA!\n\n"
-
-            f"🔹 PRODUTO: PARAFUSADEIRA\n"
+            f"🔹 CATEGORIA: {info_cat['nome']}\n"
             f"🔹 MARCA: {marca}\n\n"
-
-            "🛒 Acesse agora e confira os melhores preços:",
-
+            "🛍️ Acesse agora e confira os melhores preços:",
             reply_markup=InlineKeyboardMarkup([
-
                 [
                     InlineKeyboardButton(
-                        f"🛒 VER {marca} NO MERCADO LIVRE",
-                        url=link,
-                        style="primary"
+                        f"🛍️ VER {marca} NO MERCADO LIVRE",
+                        url=link
                     )
                 ],
-
                 [
                     InlineKeyboardButton(
-                        "⬅️ VOLTAR ÀS MARCAS",
-                        callback_data="lista_parafusadeira",
-                        style="danger"
+                        "◀️ VOLTAR ÀS MARCAS",
+                        callback_data=f"cat_{categoria}"
                     )
                 ]
-
             ])
         )
 
@@ -379,73 +373,18 @@ async def acao_botao(
 # ============================================================
 
 def main():
-
     app = Application.builder().token(TOKEN).build()
 
-
-    # /start
-    app.add_handler(
-        CommandHandler(
-            "start",
-            start
-        )
-    )
-
-
-    # Botões inline
-    app.add_handler(
-        CallbackQueryHandler(
-            acao_botao
-        )
-    )
-
-
-    # Botões do rodapé
-    app.add_handler(
-        MessageHandler(
-            filters.TEXT & ~filters.COMMAND,
-            mensagem_rodape
-        )
-    )
-
+    app.add_handler(CommandHandler("comecar", iniciar))
+    app.add_handler(CommandHandler("start", iniciar))
+    app.add_handler(CallbackQueryHandler(acao_botao))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, mensagem_rodape))
 
     logger.info("=" * 60)
-
-    logger.info(
-        "🐠 MARLIN DAS OFERTAS — BOTÕES AZUIS!"
-    )
-
-    logger.info(
-        "✅ Nova imagem de ferramentas configurada"
-    )
-
-    logger.info(
-        "✅ Imagem aparece na mensagem de boas-vindas"
-    )
-
-    logger.info(
-        "✅ Rodapé persistente"
-    )
-
-    logger.info(
-        "✅ Todas as marcas em azul"
-    )
-
-    logger.info(
-        "✅ Botões VOLTAR em vermelho"
-    )
-
-    logger.info(
-        "✅ Parafusadeiras dentro de Ferramentas"
-    )
-
+    logger.info("🔥 MARLIN DAS OFERTAS — TUDO PRONTO E ATUALIZADO!")
     logger.info("=" * 60)
 
-
-    # Inicia o bot
-    app.run_polling(
-        drop_pending_updates=True
-    )
+    app.run_polling(drop_pending_updates=True)
 
 
 # ============================================================
