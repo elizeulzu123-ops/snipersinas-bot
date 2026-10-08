@@ -454,7 +454,3 @@ def main():
 
 se __name__ == "__main__":
     principal()
-
-
-
-Calma aí vou te mandar os link para você acrescentar nesse código
